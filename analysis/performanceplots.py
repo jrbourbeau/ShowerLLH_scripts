@@ -10,9 +10,6 @@
 #=========================================================================
 
 import os,sys
-sys.path.append("$HOME/dashi")
-import dashi
-dashi.visual()  # This is needed to display plots, don't ask me why
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
@@ -21,6 +18,7 @@ import argparse
 
 import myGlobals as my
 from ShowerLLH_scripts.analysis.load_sim import load_sim
+import colormaps as cmaps
 
 def get_Ebins(reco=False):
     ebins = np.arange(4, 9.51, 0.05)
@@ -45,6 +43,8 @@ def get_medians(x, y, bins):
     return bin_centers, bin_medians, error
 
 def energyres(data, cuts, **opts):
+    # c0 = np.logical_not(np.isnan(data['ML_energy']))
+    # cuts = c0*cuts
     energyMC = data['MC_energy'][cuts]
     energyLLH = data['ML_energy'][cuts]
     energy_res = np.log10(energyLLH/energyMC)
@@ -55,15 +55,14 @@ def energyres(data, cuts, **opts):
 
     bin_centers, bin_medians, error = get_medians(np.log10(energyMC), energy_res, energy_bins)
 
-    plt.errorbar(bin_centers, bin_medians, yerr=error, marker='.', color='b')
-    plt.xlabel('$log_{10}(E_{\mathrm{true}}/\mathrm{GeV})$')
-    plt.ylabel('$log_{10}(E_{LLH}/E_{\mathrm{true}})$')
+    plt.errorbar(bin_centers, bin_medians, yerr=error, marker='.')
+    plt.xlabel('$\log_{10}(E_{\mathrm{true}}/\mathrm{GeV})$')
+    plt.ylabel('$\log_{10}(E_{LLH}/E_{\mathrm{true}})$')
     plt.title(r'ShowerLLH - IT73 - {} LLH bins'.format(opts['bintype']))
-    plt.xlim([5.5, 9.5])
+    # plt.xlim([5.5, 9.5])
     outfile = opts['outdir']+'energy_res_LLHcuts.png'
     plt.savefig(outfile)
     plt.close()
-    # bin_centers = bin_edges[:-1] + (1-0.05*index)*(energy_bins[1] - energy_bins[0])/2.
 
 def eres_position(data, cuts, **opts):
     energyMC = data['MC_energy'][cuts]
@@ -78,15 +77,14 @@ def eres_position(data, cuts, **opts):
 
     bin_centers, bin_medians, error = get_medians(core_pos, energy_res, distance_bins)
 
-    plt.errorbar(bin_centers, bin_medians, yerr=error, marker='.', color='b')
+    plt.errorbar(bin_centers, bin_medians, yerr=error, marker='.', )
     plt.xlim([0,1000])
     plt.xlabel('$\mathrm{Core \ Position} \ [m]$')
-    plt.ylabel('$log_{10}(E_{LLH}/E_{\mathrm{true}})$')
+    plt.ylabel('$\log_{10}(E_{LLH}/E_{\mathrm{true}})$')
     plt.title(r'ShowerLLH - IT73 - {} LLH bins'.format(opts['bintype']))
     outfile = opts['outdir']+'eres_pos_LLHcuts.png'
     plt.savefig(outfile)
     plt.close()
-    # bin_centers = bin_edges[:-1] + (1-0.05*index)*(energy_bins[1] - energy_bins[0])/2.
 
 def coreres(data, cuts, **opts):
     MC_x = data['MC_x'][cuts]
@@ -103,11 +101,11 @@ def coreres(data, cuts, **opts):
 
     bin_centers, bin_medians, error = get_medians(np.log10(energyMC), core_res, energy_bins)
 
-    plt.errorbar(bin_centers, bin_medians, yerr=error, marker = '.', color='b')
-    plt.xlabel('$log_{10}(E_{\mathrm{true}}/\mathrm{GeV})$')
+    plt.errorbar(bin_centers, bin_medians, yerr=error, marker = '.', )
+    plt.xlabel('$\log_{10}(E_{\mathrm{true}}/\mathrm{GeV})$')
     plt.ylabel('$\\vec{x}_{LLH}-\\vec{x}_{\mathrm{true}} \ [m]$')
     plt.title(r'ShowerLLH - IT73 - {} LLH bins'.format(opts['bintype']))
-    plt.xlim([5.5, 9.5])
+    # plt.xlim([5.5, 9.5])
     plt.ylim([0, 90])
     outfile = opts['outdir']+'core_res_LLHcuts.png'
     plt.savefig(outfile)
@@ -119,18 +117,27 @@ def LLHenergy_MCenergy(data, cuts, **opts):
     # Energy bins in Log10(Energy/GeV)
     bins = np.arange(4, 9.501, 0.05)
 
-    energy2d = dashi.factory.hist2d((energyMC, energyLLH), (bins, bins))
-    # colormap = cmaps.plasma
-    # colormap = cmaps.viridis
-    colormap = plt.get_cmap('OrRd')
-    energy2d.imshow(norm=LogNorm(), cmap=colormap)
-    plt.xlabel('$log_{10}(E_{\mathrm{true}}/\mathrm{GeV})$')
-    plt.ylabel('$log_{10}(E_{LLH}/\mathrm{GeV})$')
+    h, xedges, yedges = np.histogram2d(energyMC, energyLLH, bins=bins,
+            normed=False, weights=None)
+    h = np.rot90(h)
+    h = np.flipud(h)
+    h = np.ma.masked_where(h==0,h)
+    ntot = np.sum(h, axis=0).astype('float')
+    ntot[ntot==0] = 1.
+    h /= ntot
+    h = np.log10(h)
+    print h.max(), h.min()
+    extent = [yedges[0], yedges[-1], xedges[0], xedges[-1]]
+
+    colormap = cmaps.viridis
+    plt.imshow(h, extent=extent, origin='lower',
+        interpolation='none',cmap=colormap)
+    plt.xlabel('$\log_{10}(E_{\mathrm{true}}/\mathrm{GeV})$')
+    plt.ylabel('$\log_{10}(E_{LLH}/\mathrm{GeV})$')
     plt.title(r'ShowerLLH - IT73 - {} LLH bins'.format(opts['bintype']))
-    # plt.xlim([4, 6.0])
-    plt.xlim([5, 9])
-    plt.ylim([5, 9])
-    cb = plt.colorbar(label='Counts')
+    plt.xlim([4, 9.5])
+    plt.ylim([5, 9.5])
+    cb = plt.colorbar(label='$\log{P(E_{LLH}|E_{\mathrm{true}})}$')
     outfile = opts['outdir']+'LLHenergy_vs_MCenergy.png'
     plt.savefig(outfile)
     plt.close()
@@ -156,10 +163,6 @@ if __name__ == "__main__":
     args = p.parse_args()
     opts = vars(args).copy()
 
-    # datafile = my.llh_data + \
-    #     '/{}_sim/SimPlot_{}.npy'.format(args.config, args.bintype)
-    # data = (np.load(datafile)).item()
-    # print(data.keys())
     data = load_sim(config=args.config, bintype=args.bintype)
     cuts = data['cuts']['llh']
 

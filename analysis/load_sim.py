@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-################################################################################
-## Load essential information for simulation analysis                         ##
-################################################################################
+##############################################################################
+## Load essential information for simulation analysis
+##############################################################################
 
 
 import numpy as np
@@ -38,20 +38,21 @@ def load_sim(config='IT73', bintype='logdist'):
     # Adapted versions of Bakhtiyar's cuts
     c['llh1']  = np.logical_not(np.isnan(s['ML_energy']))
     c['llh2']  = (np.cos(np.pi - s['zenith']) >= 0.8)
-    c['llh2a'] = (180./np.pi * (np.pi - s['zenith']) >= 40)
+    # c['llh2a'] = (180./np.pi * (np.pi - s['zenith']) >= 40)
     c['llh3']  = inPoly(s['ML_x'], s['ML_y'], 0)
     #c['llh3a'] = inPoly(s['ML_x'], s['ML_y'], -50)
     #c['llh3t'] = inPoly(s['ML_x'], s['ML_y'], -90)
     c['llh4']  = np.logical_not(s['LoudestOnEdge'])
     c['llh5']  = (s['Q1'] >= 6)
-    c['llh5a'] = np.sum([s['Q'+str(i)]>=6 for i in range(1,5)], axis=0)
-    c['llh5a'] = c['llh5a'].astype('bool')
+    # c['llh5a'] = np.sum([s['Q'+str(i)]>=6 for i in range(1,5)], axis=0)
+    # c['llh5a'] = c['llh5a'].astype('bool')
 
     # Final versions of cuts for testing
-    c['llh']  = c['llh1'] * c['llh2'] * c['llh4']
+    c['llh']  = c['llh1'] * c['llh2'] * c['llh3'] * c['llh4'] * c['llh5']
+    # c['llh']  = c['llh1'] * c['llh2'] * c['llh4']
     #c['llht'] = c['llh'] * c['llh3t'] * c['llh5']
-    c['llha'] = c['llh'] * c['llh3'] * c['llh5a']
-    c['llh']  = c['llh'] * c['llh3'] * c['llh5']
+    # c['llha'] = c['llh'] * c['llh3'] * c['llh5a']
+    # c['llh']  = c['llh'] * c['llh3'] * c['llh5']
     s['cuts'] = c
 
     ## Load MC information ##
