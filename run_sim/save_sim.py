@@ -164,4 +164,4 @@ if __name__ == "__main__":
         raise SystemError('There are no files that'
         ' match {} bins for the {} configuration...'.format(args.bintype,args.config))
     saveLLH(filelist, outFile)
-    # saveExtras(extraList, outFile, args.bintype)
+    saveExtras(extraList, outFile, args.bintype)

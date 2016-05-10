@@ -67,7 +67,8 @@ class fillHist(icetray.I3Module):
 
         # Get shower information
         try:  # the first frame doesn't have a particle?
-            MC = frame['I3MCTree'].primaries[0]
+            # MC = frame['I3MCTree'].primaries[0]
+            MC = frame['MCPrimary']
             VEMpulses = frame[self.recoPulses]
             if VEMpulses.__class__ == dc.I3RecoPulseSeriesMapMask:
                 VEMpulses = VEMpulses.apply(frame)

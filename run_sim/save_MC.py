@@ -9,7 +9,7 @@ import numpy as np
 
 import myGlobals as my
 import simFunctions_IT as simFunctions
-from showerllh.analysis.llhtools import getEbins
+from ShowerLLH_scripts.analysis.llhtools import getEbins
 
 if __name__ == "__main__":
 
@@ -65,5 +65,3 @@ if __name__ == "__main__":
         d[comp][erange] += np.histogram(energies, bins=Ebins)[0]
 
     np.save(outFile, d)
-
-

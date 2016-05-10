@@ -16,15 +16,15 @@ def load_sim(config='IT73', bintype='logdist'):
 
     # Load simulation information
     my.setupShowerLLH(verbose=False)
-    infile = '{}/{}_sim/SimPlot_{}.npy'.format(my.llh_data, config, bintype)
+    infile = '%s/%s_sim/SimPlot_%s.npy' % (my.llh_data, config, bintype)
 
     s = {}
 
     t0 = time.time()
-    print('Working on {}...'.format(infile))
+    print 'Working on %s...' % infile
     s = np.load(infile)
     s = s.item()
-    print('Time taken to load: {}'.format(time.time()-t0))
+    print 'Time taken to load:', time.time()-t0
 
     # Set array types
     bools = []
@@ -55,8 +55,8 @@ def load_sim(config='IT73', bintype='logdist'):
     s['cuts'] = c
 
     ## Load MC information ##
-    print('Loading MC information...')
-    s['MC'] = np.load('{}/{}_sim/SimPlot_MC.npy'.format(my.llh_data, config))
+    print 'Loading MC information...'
+    s['MC'] = np.load('%s/%s_sim/SimPlot_MC.npy' % (my.llh_data, config))
     s['MC'] = s['MC'].item()
 
     compList = s['MC'].keys()
@@ -66,7 +66,7 @@ def load_sim(config='IT73', bintype='logdist'):
     shape = s['MC']['P']['low'].shape
     for key in ['low', 'mid', 'high']:
         s['MC']['joint'][key] = np.zeros(shape, dtype=int)
-        s['MC']['joint'][key] = np.sum([s['MC'][comp][key]
+        s['MC']['joint'][key] = np.sum([s['MC'][comp][key] 
                 for comp in compList], axis=0)
 
     return s
@@ -75,3 +75,7 @@ def load_sim(config='IT73', bintype='logdist'):
 if __name__ == "__main__":
 
     s = load_sim()
+
+
+
+
