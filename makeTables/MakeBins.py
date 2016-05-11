@@ -5,7 +5,7 @@
 ############################################################################
 
 import myGlobals as my
-from usefulFunctions import checkdir
+from ShowerLLH_scripts.support_functions.checkdir import checkdir
 import numpy as np
 import argparse, os
 

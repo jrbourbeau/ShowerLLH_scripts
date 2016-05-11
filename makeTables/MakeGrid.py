@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 import argparse
 
 import myGlobals as my
-from usefulFunctions import checkdir
-import simFunctions_IT as simFunctions
-from showerllh.analysis.llhtools import getVertex
+from ShowerLLH_scripts.support_functions.checkdir import checkdir
+import ShowerLLH_scripts.support_functions.simFunctions_IT as simFunctions
+from ShowerLLH_scripts.legacy.llhtools import getVertex
 
 # Read a gcd file and return the tank positions
 def getTanks(outFile):
