@@ -12,6 +12,9 @@
 import numpy as np
 from scipy import stats
 
+# =========================
+# Binning realted functions
+# =========================
 
 def get_energy_bins(reco=False):
     ebins = np.arange(4, 9.51, 0.05)
@@ -44,6 +47,7 @@ def get_medians(x, y, bins):
     err_down, err_down_edges, err_down_binnum = stats.binned_statistic(
         x, y, statistic=lower_error, bins=bins)
     error = [bin_medians - err_down, err_up - bin_medians]
-    bin_centers = bin_edges[:-1] + 0.05
+    # bin_centers = bin_edges[:-1] + (bin_edges[1]-bin_edges[0])/2.
+    bin_centers = get_bin_mids(bin_edges)
 
     return bin_centers, bin_medians, error

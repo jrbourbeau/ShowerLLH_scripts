@@ -159,9 +159,14 @@ if __name__ == "__main__":
     p.add_argument('-b', '--bintype', dest='bintype',
                    default='logdist',
                    help='Desired binning')
+    p.add_argument('--prefix', dest='prefix',
+            help='Path to sim file to be merged')
     args = p.parse_args()
 
-    prefix = '{}/{}_sim'.format(my.llh_data, args.config)
+    if args.prefix:
+        prefix = '{}/{}_sim'.format(args.prefix, args.config)
+    else:
+        prefix = '{}/{}_sim'.format(my.llh_data, args.config)
     if args.sim:
         allfiles = glob.glob(
             '{}/files/SimLLH_{}*.hdf5'.format(prefix, args.sim))

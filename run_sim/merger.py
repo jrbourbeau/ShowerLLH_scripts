@@ -14,10 +14,15 @@ if __name__ == "__main__":
     p.add_argument('--overwrite', dest='overwrite',
             default=False, action='store_true',
             help='Overwrite existing merged files')
+    p.add_argument('--prefix', dest='prefix',
+            help='Path to sim file to be merged')
     args = p.parse_args()
 
     # Make comprehensive list of all sim subfiles
-    masterList = glob.glob('%s/*_sim/files/SimLLH_*_part*.hdf5' % my.llh_data)
+    if args.prefix:
+        masterList = glob.glob(args.prefix+'/files/SimLLH_*_part*.hdf5')
+    else:
+        masterList = glob.glob('%s/*_sim/files/SimLLH_*_part*.hdf5' % my.llh_data)
     masterList.sort()
 
     # Reduce list to set of all leading filenames (exclude parts)

@@ -52,13 +52,13 @@ if __name__ == "__main__":
         files  = simFunctions.getSimFiles(sim)
         gcd    = simFunctions.getGCD(config)
 
-        # Default parameters            
+        # Default parameters
         resourcedir = my.llh_resource
         if args.old:
-            resourcedir=resourcedir.replace('/resources','/original/resources')
+            resourcedir=resourcedir.replace('/resources','/resources7006')
         llhFile = '%s/LLHTables_%s.npy' % (resourcedir, args.bintype)
         gridFile = '%s/%s_grid.npy' % (resourcedir, config)
-        outDir = '%s/%s_sim/files' % (my.llh_data, config)
+        outDir = '%s/%s_7006_sim/files' % (my.llh_data, config)
         if args.test:
             args.n = 2
 
@@ -124,7 +124,3 @@ if __name__ == "__main__":
     print 'Submitting %i batches...' % njobs
     for ex, jobID in zip(exList, jobIDs):
         py_submit(ex, test=args.test, jobID=jobID)
-
-
-
-

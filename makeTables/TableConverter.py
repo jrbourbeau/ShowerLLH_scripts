@@ -16,7 +16,6 @@ def makeLLH(filelist, outfile):
         # print('Loading '+file)
         q = np.load(file)
         q = q.item()
-        print('q[\'counts\'].shape = {}'.format(q['counts'].shape))
         # Record and check binning
         if i == 0:
             bins = q['bins']
