@@ -4,11 +4,14 @@
 # Makes the probability tables using AddToHist and records as .npy files
 #############################################################################
 
+import numpy as np
+import argparse
+import time
+
 from icecube import icetray, dataio
 from I3Tray import I3Tray
-import myGlobals as my
-import numpy as np
-import argparse, time, AddToHist
+import AddToHist
+import ShowerLLH_scripts.support_functions.myGlobals as my
 
 
 if __name__ == "__main__":
@@ -17,15 +20,15 @@ if __name__ == "__main__":
     my.setupShowerLLH(verbose=False)
 
     p = argparse.ArgumentParser(
-            description='Builds binned histograms for use with ShowerLLH')
+        description='Builds binned histograms for use with ShowerLLH')
     p.add_argument('-f', '--files', dest='files', nargs='*',
-            help='Input filelist to run over')
+                   help='Input filelist to run over')
     p.add_argument('-b', '--bintype', dest='bintype',
-            default='standard',
-            choices=['standard','nozenith','logdist'],
-            help='Option for a variety of preset bin values')
+                   default='standard',
+                   choices=['standard', 'nozenith', 'logdist'],
+                   help='Option for a variety of preset bin values')
     p.add_argument('-o', '--outFile', dest='outFile',
-            help='Output filename')
+                   help='Output filename')
     args = p.parse_args()
 
     # Starting parameters
@@ -42,9 +45,9 @@ if __name__ == "__main__":
     tray = I3Tray()
     tray.Add('I3Reader', FileNameList=args.files)
     tray.Add(AddToHist.fillHist,
-        binDict=binDict,
-        recoPulses=recoPulses,
-        outFile=args.outFile)
+             binDict=binDict,
+             recoPulses=recoPulses,
+             outFile=args.outFile)
     tray.Execute()
     tray.Finish()
 

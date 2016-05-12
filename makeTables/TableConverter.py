@@ -4,13 +4,16 @@
 # Converts individual count tables into a single normalized LLH table
 #############################################################################
 
-import myGlobals as my
 import numpy as np
-import glob, re, os
-import simFunctions_IT as simFunctions
+import glob
+import re
+import os
+import ShowerLLH_scripts.support_functions.myGlobals as my
+import ShowerLLH_scripts.support_functions.simFunctions as simFunctions
+
 
 def makeLLH(filelist, outfile):
-    cumulative, norm = {},{}
+    cumulative, norm = {}, {}
     # Sum all CountTables
     for i, file in enumerate(filelist):
         # print('Loading '+file)
@@ -38,20 +41,21 @@ def makeLLH(filelist, outfile):
             #     # print('idx = {}'.format(idx))
             #     # print('cumulative[comp][idx] = {}'.format(cumulative[comp][idx]))
             #     # print('sum = {}'.format(sum(cumulative[comp][idx])))
-            norm[comp][idx] = np.log10(cumulative[comp][idx] / sum(cumulative[comp][idx]))
+            norm[comp][idx] = np.log10(
+                cumulative[comp][idx] / sum(cumulative[comp][idx]))
 
     # Write to file
-    np.save(outfile, {'bins':bins, 'llhtables':norm})
+    np.save(outfile, {'bins': bins, 'llhtables': norm})
     print('{} saved.'.format(outfile))
 
 
 if __name__ == "__main__":
 
-
     # Global variables setup for path names
     my.setupShowerLLH(verbose=False)
 
-    masterlist = glob.glob('{}/CountTables/CountTable_*.npy'.format(my.llh_resource))
+    masterlist = glob.glob(
+        '{}/CountTables/CountTable_*.npy'.format(my.llh_resource))
     mergedlist = [f for f in masterlist if '_Part' not in f]
     # masterlist = [f for f in masterlist if '_Part' not in f]
 
@@ -71,6 +75,6 @@ if __name__ == "__main__":
 
         outfile = '{}/LLHTables_{}.npy'.format(my.llh_resource, bintype)
 
-        if len(filelist)!=0:
+        if len(filelist) != 0:
             print('\nMaking table for {} LLH bin scheme...'.format(bintype))
             makeLLH(filelist, outfile)

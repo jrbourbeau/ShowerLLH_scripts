@@ -5,20 +5,22 @@
 # creation of the LLH histogram - mimics C++ code in showerllh project
 #############################################################################
 
+import numpy as np
+
 from icecube import icetray, phys_services
 from icecube import dataclasses as dc
-import numpy as np
-from usefulFunctions import checkdir
+from ShowerLLH_scripts.support_functions.checkdir import checkdir
+
 
 class fillHist(icetray.I3Module):
 
     def __init__(self, context):
         icetray.I3Module.__init__(self, context)
         self.AddOutBox('OutBox')
-        self.AddParameter('binDict','Input LLH bins', 0)
+        self.AddParameter('binDict', 'Input LLH bins', 0)
         self.AddParameter('recoPulses',
-                'Input RecoPulseSeries to use for reconstruction',
-                'CleanedHLCTankPulses')
+                          'Input RecoPulseSeries to use for reconstruction',
+                          'CleanedHLCTankPulses')
         self.AddParameter('outFile', 'Input name for output file', 'test')
 
     def Configure(self):
@@ -28,7 +30,7 @@ class fillHist(icetray.I3Module):
         pass
 
     def Geometry(self, frame):
-    # Load I3Geometry to be used later
+        # Load I3Geometry to be used later
         self.geometry = frame['I3Geometry']
         self.PushFrame(frame)
 
@@ -37,8 +39,8 @@ class fillHist(icetray.I3Module):
         self.PushFrame(frame)
 
     def DetectorStatus(self, frame):
-    # Load I3DetectorStatus to gather positions and snow heights
-    # for active tanks
+        # Load I3DetectorStatus to gather positions and snow heights
+        # for active tanks
         self.om2index = {}
         self.tankpositions = []
         self.snowheight = []
@@ -56,10 +58,10 @@ class fillHist(icetray.I3Module):
                 self.snowheight.append(tank.snowheight)
                 index += 1
 
-        if len(self.tankpositions) < 5: # or some arbitrary low number
+        if len(self.tankpositions) < 5:  # or some arbitrary low number
             raise ValueError("Not enough tanks found!")
 
-        self.hist = np.zeros([len(self.bins[i][1])-1 for i in self.bins])
+        self.hist = np.zeros([len(self.bins[i][1]) - 1 for i in self.bins])
         self.snowheight = np.array(self.snowheight)
         self.PushFrame(frame)
 
@@ -114,7 +116,7 @@ class fillHist(icetray.I3Module):
         c_idx = binNames.index('C')
         cbins = self.bins[c_idx][1]
         # Make sure they'll fall in last bin
-        VEMcharges[goodcharges*saturated] = 1.01 * cbins[-2]
+        VEMcharges[goodcharges * saturated] = 1.01 * cbins[-2]
 
         unbinned_vals = {}
         unbinned_vals['E'] = [np.log10(MC.energy)] * goodcharges.sum()
@@ -135,7 +137,7 @@ class fillHist(icetray.I3Module):
         # Record count tables and bin values in outFile
         if self.outFile:
             d = {}
-            d['bins']   = self.bins
+            d['bins'] = self.bins
             d['counts'] = self.hist
             checkdir(self.outFile)
             np.save(self.outFile, d)
