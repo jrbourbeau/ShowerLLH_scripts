@@ -4,12 +4,16 @@
 # Saves basic MC information for finding efficiency
 ############################################################################
 
-import tables, time, glob, argparse, os
+import tables
+import time
+import glob
+import argparse
+import os
 import numpy as np
 
-import myGlobals as my
-import simFunctions_IT as simFunctions
-from ShowerLLH_scripts.analysis.llhtools import getEbins
+import support_functions.myGlobals as my
+import support_functions.simFunctions as simFunctions
+from analysis.llhtools import getEbins
 
 if __name__ == "__main__":
 
@@ -18,11 +22,11 @@ if __name__ == "__main__":
 
     p = argparse.ArgumentParser(description='Merge MC files')
     p.add_argument('-c', '--config', dest='config',
-            default='IT73',
-            help='Detector configuration')
+                   default='IT73',
+                   help='Detector configuration')
     p.add_argument('--overwrite', dest='overwrite',
-            default=False, action='store_true',
-            help='Option to overwrite existing output file')
+                   default=False, action='store_true',
+                   help='Option to overwrite existing output file')
     args = p.parse_args()
 
     d = {}
@@ -45,14 +49,14 @@ if __name__ == "__main__":
     for comp in compList:
         d[comp] = {}
         for erange in eDict.keys():
-            d[comp][erange] = np.zeros(len(Ebins)-1, dtype=int)
+            d[comp][erange] = np.zeros(len(Ebins) - 1, dtype=int)
 
     # Import MC information
     for f in fileList:
 
         print 'Working on ' + f
-        st  = f.find('SimLLH_') + 7
-        sim = f[st:st+4]
+        st = f.find('SimLLH_') + 7
+        sim = f[st:st + 4]
 
         # Load the energies and composition (assumes one composition per file)
         t = tables.openFile(f)

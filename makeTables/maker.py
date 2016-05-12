@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
-import argparse, glob, os, re
+import argparse
+import glob
+import os
+import re
 import numpy as np
 
-import myGlobals as my
-import simFunctions_IT as simFunctions
+import support_functions.myGlobals as my
+import support_functions.simFunctions as simFunctions
 from npx4.submit_npx4 import py_submit
 
 if __name__ == "__main__":
@@ -15,27 +18,27 @@ if __name__ == "__main__":
     simOutput = simFunctions.getSimOutput()
 
     p = argparse.ArgumentParser(
-            description='Makes binned histograms for use with ShowerLLH',
-            formatter_class=argparse.RawDescriptionHelpFormatter,
-            epilog=simOutput)
+        description='Makes binned histograms for use with ShowerLLH',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=simOutput)
     p.add_argument('-s', '--sim', dest='sim', nargs='*',
-            help='Simulation dataset to run over')
+                   help='Simulation dataset to run over')
     p.add_argument('-n', '--n', dest='n', type=int,
-            default=100,
-            help='Number for files to run per submission batch')
+                   default=100,
+                   help='Number for files to run per submission batch')
     p.add_argument('-b', '--bintype', dest='bintype',
-            default='standard',
-            choices=['standard','nozenith','logdist'],
-            help='Option for a variety of preset bin values')
+                   default='standard',
+                   choices=['standard', 'nozenith', 'logdist'],
+                   help='Option for a variety of preset bin values')
     p.add_argument('--test', dest='test', action='store_true',
-            default=False,
-            help='Option for running off cluster to test')
+                   default=False,
+                   help='Option for running off cluster to test')
     args = p.parse_args()
 
     # Default parameters
     binFile = '%s/ShowerLLH_bins.npy' % my.llh_resource
     outDir = '%s/CountTables' % my.llh_resource
-    if args.test and args.n==100:
+    if args.test and args.n == 100:
         args.n = 1
 
     cwd = os.getcwd()
@@ -45,25 +48,25 @@ if __name__ == "__main__":
 
         # Build fileList
         config = simFunctions.sim2cfg(sim)
-        files  = simFunctions.getSimFiles(sim)
+        files = simFunctions.getSimFiles(sim)
         gcd = simFunctions.getGCD(config)
         # Split into batches
-        batches = [files[i:i+args.n] for i in range(0, len(files), args.n)]
+        batches = [files[i:i + args.n] for i in range(0, len(files), args.n)]
         if args.test:
             batches = batches[:2]
 
         for batch in batches:
 
             start = re.split('\.', batch[0])[-3]
-            end   = re.split('\.', batch[-1])[-3]
-            outFile  = '%s/CountTable_%s_%s' % (outDir, sim, args.bintype)
-            outFile += '_Part'+start+'-'+end+'.npy'
+            end = re.split('\.', batch[-1])[-3]
+            outFile = '%s/CountTable_%s_%s' % (outDir, sim, args.bintype)
+            outFile += '_Part' + start + '-' + end + '.npy'
 
             batch.insert(0, gcd)
             batch = ' '.join(batch)
 
             cmd = 'python %s/MakeHist.py' % cwd
-            ex  = '%s -f %s -b %s -o %s' % (cmd, batch, args.bintype, outFile)
+            ex = '%s -f %s -b %s -o %s' % (cmd, batch, args.bintype, outFile)
             if not args.test:
                 ex = ' '.join([my.env, ex])
             exList += [[ex]]
@@ -79,9 +82,3 @@ if __name__ == "__main__":
     print 'Submitting %i batches...' % njobs
     for ex in exList:
         py_submit(ex, test=args.test)
-
-
-
-
-
-

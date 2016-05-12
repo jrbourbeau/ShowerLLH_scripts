@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
-import argparse, glob, os
-import simFunctions_IT as simFunctions
-import myGlobals as my
+import argparse
+import glob
+import os
+import support_functions.simFunctions as simFunctions
+import support_functions.myGlobals as my
 
 if __name__ == "__main__":
 
@@ -12,17 +14,18 @@ if __name__ == "__main__":
 
     p = argparse.ArgumentParser(description='Merges simulation hdf5 files')
     p.add_argument('--overwrite', dest='overwrite',
-            default=False, action='store_true',
-            help='Overwrite existing merged files')
+                   default=False, action='store_true',
+                   help='Overwrite existing merged files')
     p.add_argument('--prefix', dest='prefix',
-            help='Path to sim file to be merged')
+                   help='Path to sim file to be merged')
     args = p.parse_args()
 
     # Make comprehensive list of all sim subfiles
     if args.prefix:
-        masterList = glob.glob(args.prefix+'/files/SimLLH_*_part*.hdf5')
+        masterList = glob.glob(args.prefix + '/files/SimLLH_*_part*.hdf5')
     else:
-        masterList = glob.glob('%s/*_sim/files/SimLLH_*_part*.hdf5' % my.llh_data)
+        masterList = glob.glob(
+            '%s/*_sim/files/SimLLH_*_part*.hdf5' % my.llh_data)
     masterList.sort()
 
     # Reduce list to set of all leading filenames (exclude parts)
@@ -39,10 +42,10 @@ if __name__ == "__main__":
             print 'Outfile %s already exists. Overwriting...' % outFile
             os.remove(outFile)
 
-        fileList = glob.glob(fileStart+'_part*-*.hdf5')
+        fileList = glob.glob(fileStart + '_part*-*.hdf5')
         fileList.sort()
 
         fileList = ' '.join(fileList)
         hdf = '%s/build/hdfwriter/resources' % my.offline
-        ex  = 'python %s/scripts/merge.py -o %s %s' % (hdf, outFile, fileList)
+        ex = 'python %s/scripts/merge.py -o %s %s' % (hdf, outFile, fileList)
         os.system(ex)

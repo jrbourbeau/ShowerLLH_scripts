@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
-import glob, argparse, os
-import myGlobals as my
+import glob
+import argparse
+import os
 import numpy as np
 
+import support_functions.myGlobals as my
 
 if __name__ == "__main__":
 
@@ -12,12 +14,12 @@ if __name__ == "__main__":
     resourcedir = my.llh_resource
 
     p = argparse.ArgumentParser(
-            description='Merges all count tables in a given directory')
+        description='Merges all count tables in a given directory')
     p.add_argument('-p', '--prefix', dest='prefix',
-            default=resourcedir+'/CountTables/',
-            help='Location of CountTables to merge')
+                   default=resourcedir + '/CountTables/',
+                   help='Location of CountTables to merge')
     p.add_argument('--overwrite', action='store_true', dest='overwrite',
-            default=False, help='Overwrite existing merged files')
+                   default=False, help='Overwrite existing merged files')
     args = p.parse_args()
 
     # Build list of simulations
@@ -33,7 +35,7 @@ if __name__ == "__main__":
         filelist.sort()
 
         if len(filelist) == 0:
-            raise SystemError('No subfiles found for '+sim+'.')
+            raise SystemError('No subfiles found for ' + sim + '.')
 
         d = {}
         print('\nMerging {}...'.format(os.path.basename(sim)))
@@ -41,7 +43,7 @@ if __name__ == "__main__":
             q = np.load(file)
             q = q.item()
             if i == 0:
-                d['bins']   = q['bins']
+                d['bins'] = q['bins']
                 d['counts'] = np.zeros(q['counts'].shape)
             d['counts'] += q['counts']
 
