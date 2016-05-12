@@ -8,8 +8,8 @@ import numpy as np
 import glob
 import re
 import os
-import ShowerLLH_scripts.support_functions.myGlobals as my
-import ShowerLLH_scripts.support_functions.simFunctions as simFunctions
+import support_functions.myGlobals as my
+import support_functions.simFunctions as simFunctions
 
 
 def makeLLH(filelist, outfile):

@@ -5,10 +5,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import argparse
 
-import ShowerLLH_scripts.support_functions.myGlobals as my
-from ShowerLLH_scripts.support_functions.checkdir import checkdir
-import ShowerLLH_scripts.support_functions.simFunctions as simFunctions
-from ShowerLLH_scripts.legacy.llhtools import getVertex
+import support_functions.myGlobals as my
+from support_functions.checkdir import checkdir
+import support_functions.simFunctions as simFunctions
+from legacy.llhtools import getVertex
 
 # Read a gcd file and return the tank positions
 

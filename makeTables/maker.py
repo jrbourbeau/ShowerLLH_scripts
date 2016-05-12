@@ -6,8 +6,8 @@ import os
 import re
 import numpy as np
 
-import ShowerLLH_scripts.support_functions.myGlobals as my
-import ShowerLLH_scripts.support_functions.simFunctions as simFunctions
+import support_functions.myGlobals as my
+import support_functions.simFunctions as simFunctions
 from npx4.submit_npx4 import py_submit
 
 if __name__ == "__main__":

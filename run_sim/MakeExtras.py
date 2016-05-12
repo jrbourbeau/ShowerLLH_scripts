@@ -1,41 +1,43 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 
-################################################################################
+##########################################################################
 # Runs the grid search on the given files and writes to hdf5 output
-################################################################################
+##########################################################################
+
+import numpy as np
+import time
+import glob
+import argparse
 
 from icecube import dataio, toprec
 from I3Tray import *
 from icecube.tableio import I3TableWriter
 from icecube.hdfwriter import I3HDFTableService
 
-import numpy as np
-import time, glob, argparse
-
-import simFunctions_IT as simFunctions
-from i3modules import GetStations, PruneIceTop, moveMCPrimary
-from i3modules import FindLoudestStation, LoudestStationOnEdge
-from i3modules import LargestTankCharges
+import support_functions.simFunctions as simFunctions
+from support_functions.i3modules import GetStations, PruneIceTop, moveMCPrimary
+from support_functions.i3modules import FindLoudestStation, LoudestStationOnEdge
+from support_functions.i3modules import LargestTankCharges
 
 
 if __name__ == "__main__":
 
     p = argparse.ArgumentParser(
-            description='Runs extra modules over a given fileList')
+        description='Runs extra modules over a given fileList')
     p.add_argument('-f', '--files', dest='files', nargs='*',
-            help='Files to run over')
+                   help='Files to run over')
     p.add_argument('-c', '--config', dest='config',
-            help='Detector configuration')
+                   help='Detector configuration')
     p.add_argument('-o', '--outFile', dest='outFile',
-            help='Output file')
+                   help='Output file')
     args = p.parse_args()
 
     # Starting parameters
     recoPulses = simFunctions.recoPulses(args.config)
-    it_stream  = simFunctions.it_stream(args.config)
+    it_stream = simFunctions.it_stream(args.config)
 
     # Keys to write to frame
-    keys  = []
+    keys = []
     keys += ['I3EventHeader']
     keys += ['ShowerPlane', 'ShowerPlaneParams']
     keys += ['LoudestStation', 'LoudestOnEdge']
@@ -44,7 +46,6 @@ if __name__ == "__main__":
     keys += ['NStations']
     #keys += [recoPulses]
     keys += ['MCPrimary']
-
 
     t0 = time.time()
 
@@ -56,7 +57,7 @@ if __name__ == "__main__":
     # Clean up events
 
     tray.AddModule(PruneIceTop,
-            it_stream=it_stream)
+                   it_stream=it_stream)
 
     tray.AddModule(moveMCPrimary)
 
@@ -64,39 +65,34 @@ if __name__ == "__main__":
     # Cut information
 
     tray.AddModule(GetStations,
-            InputITpulses = recoPulses,
-            output = 'NStations')
+                   InputITpulses=recoPulses,
+                   output='NStations')
 
     tray.AddModule(FindLoudestStation,
-            InputITpulses = recoPulses,
-            SaturationValue = 600,
-            output = 'SaturationList')
+                   InputITpulses=recoPulses,
+                   SaturationValue=600,
+                   output='SaturationList')
 
     tray.AddModule(LoudestStationOnEdge,
-            InputLoudestStation = 'LoudestStation',
-            config = args.config,
-            output = 'LoudestOnEdge')
+                   InputLoudestStation='LoudestStation',
+                   config=args.config,
+                   output='LoudestOnEdge')
 
     tray.AddModule(LoudestStationOnEdge,
-            InputLoudestStation = 'SaturationList',
-            config = args.config,
-            output = 'SaturatedOnEdge')
+                   InputLoudestStation='SaturationList',
+                   config=args.config,
+                   output='SaturatedOnEdge')
 
     tray.AddModule(LargestTankCharges,
-            ITpulses = recoPulses)
+                   ITpulses=recoPulses)
 
     #====================================================================
     # Finish
 
-    tray.AddModule(I3TableWriter, tableservice=hdf, keys=keys, 
-            SubEventStreams=[it_stream])
+    tray.AddModule(I3TableWriter, tableservice=hdf, keys=keys,
+                   SubEventStreams=[it_stream])
 
     tray.Execute()
     tray.Finish()
 
     print "Time taken: ", time.time() - t0
-
-
-
-
-

@@ -9,7 +9,7 @@ import numpy as np
 
 from icecube import icetray, phys_services
 from icecube import dataclasses as dc
-from ShowerLLH_scripts.support_functions.checkdir import checkdir
+from support_functions.checkdir import checkdir
 
 
 class fillHist(icetray.I3Module):

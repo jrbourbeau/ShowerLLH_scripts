@@ -8,8 +8,8 @@ import numpy as np
 import argparse
 import os
 
-import ShowerLLH_scripts.support_functions.myGlobals as my
-from ShowerLLH_scripts.support_functions.checkdir import checkdir
+import support_functions.myGlobals as my
+from support_functions.checkdir import checkdir
 
 if __name__ == "__main__":
 

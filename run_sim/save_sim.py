@@ -8,8 +8,8 @@ import re
 import numpy as np
 from collections import defaultdict
 
-import myGlobals as my
-import simFunctions_IT as simFunctions
+import support_functions.myGlobals as my
+import support_functions.imFunctions as simFunctions
 
 
 def eventID(branch):

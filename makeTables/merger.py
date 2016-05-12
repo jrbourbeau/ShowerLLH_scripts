@@ -5,7 +5,7 @@ import argparse
 import os
 import numpy as np
 
-import ShowerLLH_scripts.support_functions.myGlobals as my
+import support_functions.myGlobals as my
 
 if __name__ == "__main__":
 

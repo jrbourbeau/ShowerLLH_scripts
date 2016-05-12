@@ -11,7 +11,7 @@ import time
 from icecube import icetray, dataio
 from I3Tray import I3Tray
 import AddToHist
-import ShowerLLH_scripts.support_functions.myGlobals as my
+import support_functions.myGlobals as my
 
 
 if __name__ == "__main__":
