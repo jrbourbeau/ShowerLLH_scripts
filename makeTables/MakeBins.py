@@ -14,7 +14,7 @@ from support_functions.checkdir import checkdir
 if __name__ == "__main__":
 
     # Global variables setup for path names
-    my.setupShowerLLH(verbose=False)
+    my.setupGlobals(verbose=False)
     resourcedir = my.llh_resource
 
     p = argparse.ArgumentParser(

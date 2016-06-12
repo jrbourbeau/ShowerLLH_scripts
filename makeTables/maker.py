@@ -8,13 +8,12 @@ import numpy as np
 
 import support_functions.myGlobals as my
 import support_functions.simFunctions as simFunctions
-from npx4.submit_npx4 import py_submit
+from support_functions.submit_npx4 import py_submit
 
 if __name__ == "__main__":
 
     # Global variables setup for path names
     my.setupGlobals(verbose=False)
-    my.setupShowerLLH(verbose=False)
     simOutput = simFunctions.getSimOutput()
 
     p = argparse.ArgumentParser(

@@ -3,7 +3,7 @@
 # An attempt at rewriting submit_npx4.sh in python
 import os, stat, subprocess, random
 
-import myGlobals as my
+import support_functions.myGlobals as my
 
 def py_submit(exelines, jobID=None, sublines=None, test=False):
 

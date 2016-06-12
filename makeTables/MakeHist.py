@@ -13,13 +13,10 @@ from I3Tray import I3Tray
 import AddToHist
 import support_functions.myGlobals as my
 
-from icecube.ShowerLLH import LLHBins
-
-
 if __name__ == "__main__":
 
     # Global variables setup for path names
-    my.setupShowerLLH(verbose=False)
+    my.setupGlobals(verbose=False)
 
     p = argparse.ArgumentParser(
         description='Builds binned histograms for use with ShowerLLH')
@@ -36,15 +33,11 @@ if __name__ == "__main__":
     # Starting parameters
     recoPulses = 'CleanedHLCTankPulses'
 
-    # # Import ShowerLLH bins
-    # binFile = '{}/ShowerLLH_bins.npy'.format(my.llh_resource)
-    # binDict = np.load(binFile)
-    # binDict = binDict.item()
-    # binDict = binDict[args.bintype]
-
-    # Get ShowerLLH bins
-    llhbins = LLHBins[bintype=args.bintype]
-    binDict = llhbins.bins
+    # Import ShowerLLH bins
+    binFile = '{}/ShowerLLH_bins.npy'.format(my.llh_resource)
+    binDict = np.load(binFile)
+    binDict = binDict.item()
+    binDict = binDict[args.bintype]
 
     # Execute
     t0 = time.time()

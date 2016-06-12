@@ -8,7 +8,7 @@ import argparse
 import support_functions.myGlobals as my
 from support_functions.checkdir import checkdir
 import support_functions.simFunctions as simFunctions
-from legacy.llhtools import getVertex
+from support_functions.llhtools import getVertex
 
 # Read a gcd file and return the tank positions
 
@@ -158,7 +158,7 @@ def makeGrids(**kwargs):
 if __name__ == "__main__":
 
     # Global variables setup for path names
-    my.setupShowerLLH(verbose=False)
+    my.setupGlobals(verbose=False)
     resourcedir = my.llh_resource
 
     p = argparse.ArgumentParser(

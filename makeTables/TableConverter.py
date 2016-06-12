@@ -11,9 +11,6 @@ import os
 import support_functions.myGlobals as my
 import support_functions.simFunctions as simFunctions
 
-from icecube.ShowerLLH import LLHTable
-
-
 def makeLLH(filelist, outfile):
     if isinstance(filelist, basestring):
         filelist = [filelist]
@@ -78,8 +75,6 @@ if __name__ == "__main__":
         filelist = [f for f in filelist if '_7351_' not in f]
 
         outfile = '{}/LLHTables_{}.npy'.format(my.llh_resource, bintype)
-
-        table = LLHTable(bintype=bintype)
 
         if len(filelist) != 0:
             print('\nMaking table for {} LLH bin scheme...'.format(bintype))
