@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import argparse
 import time
 import tables
@@ -9,7 +10,7 @@ import numpy as np
 from collections import defaultdict
 
 import support_functions.myGlobals as my
-import support_functions.imFunctions as simFunctions
+import support_functions.simFunctions as simFunctions
 
 
 def eventID(branch):
@@ -174,7 +175,11 @@ if __name__ == "__main__":
         allfiles = glob.glob('{}/files/SimLLH_*.hdf5'.format(prefix))
     mergedfiles = [f for f in allfiles if '_part' not in f]
     filelist = [f for f in mergedfiles if args.bintype in f]
+    low_energy_sim_list = ['7351', '7483', '7486', '7394']
+    filelist = [f for f in filelist if not any(i in f for i in low_energy_sim_list)]
     filelist.sort()
+    # print('filelist = {}'.format(filelist))
+    # sys.exit()
     extraList = [f.replace(args.bintype, 'extras') for f in filelist]
 
     if args.sim:

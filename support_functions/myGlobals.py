@@ -5,8 +5,8 @@ def setupGlobals(verbose=True):
     globalVals = globals().keys()
     global npx4, env, offline
     npx4    = '/home/jbourbeau/npx4'
-    env     = '/data/user/jbourbeau/offline/icerec/V04-08-00/build/env-shell.sh'
-    offline = '/data/user/jbourbeau/offline/icerec/V04-08-00'
+    env     = '/data/user/jbourbeau/offline/icerec/V05-00-00/build/env-shell.sh'
+    offline = '/data/user/jbourbeau/offline/icerec/V05-00-00'
 
     # Option to print changes to global variables
     if verbose:

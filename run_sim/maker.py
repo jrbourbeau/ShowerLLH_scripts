@@ -46,7 +46,7 @@ if __name__ == "__main__":
     cwd = os.getcwd()
     exList, jobIDs = [], []
 
-    prefix = '/data/user/fmcnally/showerllh/IT73_sim/files'
+    # prefix = '/data/user/fmcnally/showerllh/IT73_sim/files'
 
     for sim in args.sim:
 
@@ -61,7 +61,8 @@ if __name__ == "__main__":
             resourcedir = resourcedir.replace('/resources', '/resources7006')
         llhFile = '%s/LLHTables_%s.npy' % (resourcedir, args.bintype)
         gridFile = '%s/%s_grid.npy' % (resourcedir, config)
-        outDir = '%s/%s_7006_sim/files' % (my.llh_data, config)
+        outDir = '%s/%s_sim/files' % (my.llh_data, config)
+        # outDir = '%s/%s_7006_sim/files' % (my.llh_data, config)
         if args.test:
             args.n = 2
 

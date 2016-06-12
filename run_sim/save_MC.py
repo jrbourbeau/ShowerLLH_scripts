@@ -13,7 +13,7 @@ import numpy as np
 
 import support_functions.myGlobals as my
 import support_functions.simFunctions as simFunctions
-from analysis.llhtools import getEbins
+from support_functions.llhtools import getEbins
 
 if __name__ == "__main__":
 
@@ -35,9 +35,11 @@ if __name__ == "__main__":
     if os.path.isfile(outFile) and not args.overwrite:
         raise SystemExit('Outfile %s exists.\nNothing to do...' % outFile)
 
-    fileList = glob.glob('%s/files/SimLLH_*_MC.hdf5' % prefix)
-    fileList = [f for f in fileList if '_part' not in f]
-    fileList.sort()
+    filelist = glob.glob('%s/files/SimLLH_*_MC.hdf5' % prefix)
+    filelist = [f for f in filelist if '_part' not in f]
+    low_energy_sim_list = ['7351', '7483', '7486', '7394']
+    filelist = [f for f in filelist if not any(i in f for i in low_energy_sim_list)]
+    filelist.sort()
 
     # Basic setup
     eDict = simFunctions.getErange()
@@ -52,7 +54,7 @@ if __name__ == "__main__":
             d[comp][erange] = np.zeros(len(Ebins) - 1, dtype=int)
 
     # Import MC information
-    for f in fileList:
+    for f in filelist:
 
         print 'Working on ' + f
         st = f.find('SimLLH_') + 7
