@@ -27,8 +27,6 @@ if __name__ == "__main__":
                    help='Files to run over')
     p.add_argument('-c', '--config', dest='config',
                    help='Detector configuration')
-    p.add_argument('--gridFile', dest='gridFile',
-                   help='File containing locations for iterative grid search')
     p.add_argument('--llhFile', dest='llhFile',
                    help='File with llh tables for reconstruction')
     p.add_argument('-o', '--outFile', dest='outFile',
@@ -46,17 +44,19 @@ if __name__ == "__main__":
     it_stream = simFunctions.it_stream(args.config)
 
     # Load grids for grid scan, llh tables, and bins
-    grids = np.load(args.gridFile)
-    grids = grids.item()
-    LLHTables = np.load(args.llhFile)
-    LLHTables = LLHTables.item()
-    binDict = LLHTables['bins']
-    LLHTables = LLHTables['llhtables']
+    LLH_grid = ShowerLLH.LLHGrid(config=args.config)
+    grids = LLH_grid.search_grid
+    LLH_file = np.load(args.llhFile)
+    LLH_file = LLH_file.item()
+    LLH_tables = LLH_file['llhtables']
+    LLH_bins = ShowerLLH.LLHBins(LLH_file['bintype'])
+    binDict = LLH_bins.bins
+
 
     # Keys to write to frame
     keys = []
     keys += ['I3EventHeader']
-    for comp in LLHTables.keys():
+    for comp in LLH_tables.keys():
         keys += ['ShowerLLH_' + comp, 'ShowerLLHParams_' + comp]
     keys += ['MCPrimary']
 
@@ -81,8 +81,8 @@ if __name__ == "__main__":
     # C++ mode faster
     if args.cpp:
         gridx, gridy = np.transpose(grids[0])
-        for comp in LLHTables.keys():
-            llh = list(LLHTables[comp].flatten())
+        for comp in LLH_tables.keys():
+            llh = list(LLH_tables[comp].flatten())
             tray.AddModule('ShowerLLH', 'ShowerLLH_' + comp,
                            recoPulses=recoPulses,
                            comp=comp,
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     # (and more flexible for binning tests)
     else:
         tray.AddModule(ShowerLLH.GridLLH, 'ShowerLLHGrid',
-                       LLHTables=LLHTables,
+                       LLHTables=LLH_tables,
                        binDict=binDict,
                        grids=grids,
                        recoPulses=recoPulses)

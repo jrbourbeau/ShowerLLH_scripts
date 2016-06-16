@@ -9,6 +9,7 @@ import numpy as np
 import support_functions.myGlobals as my
 import support_functions.simFunctions as simFunctions
 from support_functions.submit_npx4 import py_submit
+from support_functions.checkdir import checkdir
 
 if __name__ == "__main__":
 
@@ -27,7 +28,7 @@ if __name__ == "__main__":
                    help='Number for files to run per submission batch')
     p.add_argument('-b', '--bintype', dest='bintype',
                    default='standard',
-                   choices=['standard', 'nozenith', 'logdist'],
+                   choices=['standard', 'nozenith', 'logdist','nosnow'],
                    help='Option for a variety of preset bin values')
     p.add_argument('--test', dest='test', action='store_true',
                    default=False,
@@ -35,13 +36,13 @@ if __name__ == "__main__":
     args = p.parse_args()
 
     # Default parameters
-    binFile = '%s/ShowerLLH_bins.npy' % my.llh_resource
-    outDir = '%s/CountTables' % my.llh_resource
+    outDir = '{}/CountTables/'.format(my.llh_resource)
+    checkdir(outDir)
     if args.test and args.n == 100:
         args.n = 1
 
     cwd = os.getcwd()
-    exList = []
+    exList, jobIDs = [], []
 
     for sim in args.sim:
 
@@ -54,30 +55,33 @@ if __name__ == "__main__":
         if args.test:
             batches = batches[:2]
 
-        for batch in batches:
+        for bi, batch in enumerate(batches):
 
             start = re.split('\.', batch[0])[-3]
             end = re.split('\.', batch[-1])[-3]
-            outFile = '%s/CountTable_%s_%s' % (outDir, sim, args.bintype)
+            outFile = '{}CountTable_{}_{}'.format(outDir, sim, args.bintype)
             outFile += '_Part' + start + '-' + end + '.npy'
 
             batch.insert(0, gcd)
             batch = ' '.join(batch)
 
-            cmd = 'python %s/MakeHist.py' % cwd
-            ex = '%s -f %s -b %s -o %s' % (cmd, batch, args.bintype, outFile)
+            cmd = 'python {}/MakeHist.py'.format(cwd)
+            ex = '{} -f {} -b {} -o {}'.format(cmd,
+                                               batch, args.bintype, outFile)
             if not args.test:
                 ex = ' '.join([my.env, ex])
             exList += [[ex]]
+            jobIDs += ['counttables_%s_%04i' % (sim, bi)]
 
     # Moderate number of submitted jobs
     njobs = len(exList)
     if njobs > 500:
-        yn = raw_input('About to submit %i jobs. You sure? [y|n]: ' % njobs)
+        yn = raw_input(
+            'About to submit {} jobs. You sure? [y|n]: '.format(njobs))
         if yn != 'y':
-            raise SystemExit('Aborting...' % njobs)
+            raise SystemExit('Aborting...{}'.format(njobs))
 
     # Submit jobs
-    print 'Submitting %i batches...' % njobs
-    for ex in exList:
-        py_submit(ex, test=args.test)
+    print('Submitting {} batches...'.format(njobs))
+    for ex, jobID in zip(exList, jobIDs):
+        py_submit(ex, test=args.test, jobID=jobID)

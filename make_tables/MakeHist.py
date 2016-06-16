@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 
 #############################################################################
-# Makes the probability tables using AddToHist and records as .npy files
+# Makes the probability tables using FillHist and records as .npy files
 #############################################################################
 
 import numpy as np
 import argparse
 import time
 
-from icecube import icetray, dataio
+from icecube import icetray, dataio, ShowerLLH
 from I3Tray import I3Tray
-import AddToHist
 import support_functions.myGlobals as my
+from support_functions.checkdir import checkdir
+
 
 if __name__ == "__main__":
 
@@ -24,7 +25,7 @@ if __name__ == "__main__":
                    help='Input filelist to run over')
     p.add_argument('-b', '--bintype', dest='bintype',
                    default='standard',
-                   choices=['standard', 'nozenith', 'logdist'],
+                   choices=['standard', 'nozenith', 'logdist','nosnow'],
                    help='Option for a variety of preset bin values')
     p.add_argument('-o', '--outFile', dest='outFile',
                    help='Output filename')
@@ -33,18 +34,16 @@ if __name__ == "__main__":
     # Starting parameters
     recoPulses = 'CleanedHLCTankPulses'
 
-    # Import ShowerLLH bins
-    binFile = '{}/ShowerLLH_bins.npy'.format(my.llh_resource)
-    binDict = np.load(binFile)
-    binDict = binDict.item()
-    binDict = binDict[args.bintype]
+    # Get LLHBins
+    LLH_bins = ShowerLLH.LLHBins(args.bintype)
 
     # Execute
     t0 = time.time()
     tray = I3Tray()
     tray.Add('I3Reader', FileNameList=args.files)
-    tray.Add(AddToHist.fillHist,
-             binDict=binDict,
+    tray.Add(ShowerLLH.FillHist,
+             binDict=LLH_bins.bins,
+             bintype=LLH_bins.bintype,
              recoPulses=recoPulses,
              outFile=args.outFile)
     tray.Execute()

@@ -8,12 +8,12 @@ import argparse
 import support_functions.myGlobals as my
 import support_functions.simFunctions as simFunctions
 from support_functions.submit_npx4 import py_submit
+from support_functions.checkdir import checkdir
 
 if __name__ == "__main__":
 
     # Setup global path names
     my.setupGlobals(verbose=False)
-    my.setupShowerLLH(verbose=False)
     simOutput = simFunctions.getSimOutput()
 
     p = argparse.ArgumentParser(
@@ -27,8 +27,7 @@ if __name__ == "__main__":
                    help='Number of files to run per batch')
     p.add_argument('-b', '--bintype', dest='bintype',
                    default='standard',
-                   help='Choose bin config for llh tables OR other desired info \
-            [standard|nozenith|logdist|MC|lap|extras]')
+                   help='Choose bin config for llh tables OR other desired info', choices=['standard', 'nozenith', 'logdist', 'nosnow', 'MC', 'lap', 'extras'])
     p.add_argument('--missing', dest='missing',
                    default=False, action='store_true',
                    help='Option to only submit files with missing file names')
@@ -46,8 +45,6 @@ if __name__ == "__main__":
     cwd = os.getcwd()
     exList, jobIDs = [], []
 
-    # prefix = '/data/user/fmcnally/showerllh/IT73_sim/files'
-
     for sim in args.sim:
 
         # Get config and simulation files
@@ -60,8 +57,9 @@ if __name__ == "__main__":
         if args.old:
             resourcedir = resourcedir.replace('/resources', '/resources7006')
         llhFile = '%s/LLHTables_%s.npy' % (resourcedir, args.bintype)
-        gridFile = '%s/%s_grid.npy' % (resourcedir, config)
+        # gridFile = '%s/%s_grid.npy' % (resourcedir, config)
         outDir = '%s/%s_sim/files' % (my.llh_data, config)
+        checkdir(outDir + '/')
         # outDir = '%s/%s_7006_sim/files' % (my.llh_data, config)
         if args.test:
             args.n = 2
@@ -108,7 +106,8 @@ if __name__ == "__main__":
                 if args.old:
                     out = out.replace('.hdf5', '_old.hdf5')
                 arg = '--files %s -c %s -o %s' % (batch, config, out)
-                arg += ' --gridFile %s --llhFile %s' % (gridFile, llhFile)
+                arg += ' --llhFile %s' % (llhFile)
+                # arg += ' --gridFile %s --llhFile %s' % (gridFile, llhFile)
 
             ex = ' '.join([cmd, arg])
             if not args.test:
@@ -125,6 +124,6 @@ if __name__ == "__main__":
             raise SystemExit('Aborting...' % njobs)
 
     # Submit jobs
-    print 'Submitting %i batches...' % njobs
+    print('Submitting {} batches...'.format(njobs))
     for ex, jobID in zip(exList, jobIDs):
         py_submit(ex, test=args.test, jobID=jobID)
