@@ -22,6 +22,9 @@ if __name__ == "__main__":
                    help='Location of CountTables to merge')
     p.add_argument('--overwrite', action='store_true', dest='overwrite',
                    default=False, help='Overwrite existing merged files')
+    p.add_argument('--remove', dest='remove',
+                   default=False, action='store_true',
+                   help='Remove unmerged hdf5 files')
     args = p.parse_args()
 
     # --------
@@ -45,8 +48,9 @@ if __name__ == "__main__":
         print('\nMerging {}...'.format(sim))
         ShowerLLH.merge_counts_tables(filelist, outfile)
         # Remove all un-merged count table files
-        for f in filelist:
-            os.remove(f)
+        if args.remove:
+            for f in filelist:
+                os.remove(f)
 
     # --------
     # Convert counts to log-probability

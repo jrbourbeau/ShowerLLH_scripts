@@ -121,7 +121,7 @@ if __name__ == "__main__":
     if njobs > 500:
         yn = raw_input('About to submit %i jobs. You sure? [y|n]: ' % njobs)
         if yn != 'y':
-            raise SystemExit('Aborting...' % njobs)
+            raise SystemExit('Aborting {} jobs...'.format(njobs))
 
     # Submit jobs
     print('Submitting {} batches...'.format(njobs))

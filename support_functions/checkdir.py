@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 #=======================================================================
-# File Name     : usefulFunctions.py
-# Description   : Contain useful function to avoid errors in python
+# File Name     : checkdir.py
+# Description   : Checks whether the path to a file or directory exists.
+#                 If the directory doesn't exist, it is created. 
 # Creation Date : 04-20-2016
-# Last Modified : Wed 20 Apr 2016 10:30:38 AM CDT
 # Created By    : James Bourbeau
 #=======================================================================
 

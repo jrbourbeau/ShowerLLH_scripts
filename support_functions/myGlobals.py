@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 def setupGlobals(verbose=True):
 
     globalVals = globals().keys()

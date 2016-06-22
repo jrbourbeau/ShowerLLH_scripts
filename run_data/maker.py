@@ -1,93 +1,103 @@
 #!/usr/bin/env python
 
-import os, argparse, glob
+import os
+import argparse
+import glob
 
-import myGlobals as my
-import dataFunctions as df
-from goodrunlist.goodRunReader import getGoodDates
-from npx4.submit_npx4 import py_submit
+import support_functions.myGlobals as my
+import support_functions.dataFunctions as df
+import support_functions.GoodRunList as grl
+# from goodrunlist.goodRunReader import getGoodDates
+import support_functions.simFunctions as simFunctions
+from support_functions.submit_npx4 import py_submit
+from support_functions.checkdir import checkdir
 
 if __name__ == "__main__":
 
     # Setup global path names
     my.setupGlobals(verbose=False)
-    my.setupShowerLLH(verbose=False)
 
     p = argparse.ArgumentParser(
-            description='Mass runs MakeShowerLLH.py on cluster')
-    p.add_argument('-c', '--config', dest='config',
-            help='Detector configuration to run over')
+        description='Mass runs MakeShowerLLH.py on cluster')
+    p.add_argument('-c', '--config', dest='config', default='IT73',
+                   help='Detector configuration to run over')
     p.add_argument('-d', '--date', dest='date',
-            help='Date to run over (yyyy[mmdd])')
+                   help='Date to run over (yyyy[mmdd])')
     p.add_argument('-n', '--n', dest='n', type=int,
-            help='Number of files to run per batch')
+                   help='Number of files to run per batch')
     p.add_argument('--old', dest='old',
-            default=False, action='store_true',
-            help='Run in old Python implementation')
+                   default=False, action='store_true',
+                   help='Run in old Python implementation')
     p.add_argument('-b', '--bintype', dest='bintype',
-            default='logdist',
-            #choices=['standard','nozenith','logdist','lap','extras'],
-            help='Choose bin config for llh tables OR other desired info')
+                   default='standard',
+                   # choices=['standard','nozenith','logdist','lap','extras'],
+                   help='Choose bin config for llh tables OR other desired info')
     p.add_argument('--missing', dest='missing',
-            default=False, action='store_true',
-            help='Option to only submit files with missing file names')
+                   default=False, action='store_true',
+                   help='Option to only submit files with missing file names')
     p.add_argument('--test', dest='test', action='store_true',
-            default=False,
-            help='Option for running test off cluster')
+                   default=False,
+                   help='Option for running test off cluster')
     args = p.parse_args()
 
     # Default parameters
     it_geo = df.it_geo(args.config)
-    llhFile = '%s/LLHTables_%s.npy' % (my.llh_resource, args.bintype)
-    gridFile = '%s/%s_grid.npy' % (my.llh_resource, it_geo)
-    outDir = '%s/%s_data/files' % (my.llh_data, args.config)
+    LLH_file = '{}/LLHTables_{}.npy'.format(my.llh_resource, args.bintype)
+    outDir = '{}/{}_data/files'.format(my.llh_data, args.config)
+    checkdir(outDir)
     outp = "${_CONDOR_SCRATCH_DIR}/simple-dst"
     if not args.n:
         if args.config == 'IT59':
             args.n = 1
-        if args.config in ['IT73','IT81']:
+        if args.config in ['IT73', 'IT81']:
             args.n = 20
         if args.config in ['IT81-II']:  # some jobs held, lower this
             args.n = 80
-        if args.config in ['IT81-III','IT81-IV']:
+        if args.config in ['IT81-III', 'IT81-IV']:
             args.n = 40
         if args.test and args.config != 'IT59':
             args.n = 2
 
-    goodDateList = getGoodDates(args.config)
-    goodDates = [i for i in goodDateList if i[:len(args.date)]==args.date]
+    # goodDateList = getGoodDates(args.config)
+    g = grl.GoodRunList(config=args.config)
+    good_date_list = g.get_good_dates()
+    date_2_goodrun_num = g.date_to_goodrun_num()
+    # goodDates = [i for i in good_date_list if i[:len(args.date)] == args.date]
     if args.test:
-        goodDates = goodDates[:2]
+        good_date_list = good_date_list[:2]
+        # goodDates = goodDates[:2]
 
     cwd = os.getcwd()
-    exList, jobIDs = [],[]
+    exList, jobIDs = [], []
 
-    for yyyymmdd in goodDates:
+    gcd = simFunctions.getGCD(args.config)
+    for yyyymmdd in good_date_list:
 
-        # Get list of files
-        files, gcdFiles = df.getDataFiles(args.config, yyyymmdd)
-        ## TEMPORARY ##
-        #badRuns = ['00119990','00119991']
-        #files = [f for f in files if df.getRun(f) not in badRuns]
-        ## END TEMPORARY ##
-        runList = list(set([df.getRun(f) for f in files]))
-        gcdFiles = [gcd for gcd in gcdFiles if df.getRun(gcd) in runList]
-        files.sort()
-
+        # # Get list of files
+        # files, gcdFiles = df.getDataFiles(args.config, yyyymmdd)
+        # runList = list(set([df.getRun(f) for f in files]))
+        run_nums = date_2_goodrun_num[yyyymmdd]
+        files, gcdFiles = df.get_data_files(args.config, yyyymmdd, run_nums, gcd=True)
+        gcdFiles = [gcd for gcd in gcdFiles if df.getRun(gcd) in run_nums]
+        # gcdFiles = [gcd for gcd in gcdFiles if df.getRun(gcd) in runList]
+        # files.sort()
+        # files = df.getDataFiles(args.config, yyyymmdd)
+        # print('files = {}'.format(files))
+        
         # List of existing files to possibly check against
-        existingFiles = glob.glob('%s/DataLLH_%s_%s_*.hdf5' % \
-                (outDir, yyyymmdd, args.bintype))
+        existingFiles = glob.glob('%s/DataLLH_%s_%s_*.hdf5' %
+                                  (outDir, yyyymmdd, args.bintype))
         existingFiles.sort()
 
         # Split into batches
-        batches = [files[i:i+args.n] for i in range(0, len(files), args.n)]
+        batches = [files[i:i + args.n] for i in range(0, len(files), args.n)]
         if args.test:
             batches = batches[:2]
 
         for bi, batch in enumerate(batches):
 
             # Place GCD files
-            gcds, idxs = [],[]
+            gcds, idxs = [], []
             run_prev = '0'
             for i, file in enumerate(batch):
                 run = df.getRun(file)
@@ -116,7 +126,7 @@ if __name__ == "__main__":
 
             cmd = 'python %s/MakeShowerLLH.py' % cwd
             cmd += ' -c %s -o %s' % (args.config, out)
-            cmd += ' --gridFile %s --llhFile %s' % (gridFile, llhFile)
+            cmd += ' --llhFile {}'.format(LLH_file)
             if not args.test:
                 lfiles = ['%s/%s' % (outp, os.path.basename(f)) for f in batch]
                 lfiles = ' '.join(lfiles)
@@ -147,6 +157,5 @@ if __name__ == "__main__":
 
     print 'Submitting %i batches...' % njobs
     for ex, jobID in zip(exList, jobIDs)[:10]:
+        print('ex = {}'.format(ex))
         py_submit(ex, test=args.test, jobID=jobID)
-
-

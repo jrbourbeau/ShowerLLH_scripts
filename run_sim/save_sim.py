@@ -25,6 +25,7 @@ def eventID(branch):
 def saveLLH(fileList, outFile):
 
     d = defaultdict(list)
+    # rDict = {'proton': 'P', 'helium': 'He', 'oxygen': 'O', 'iron': 'Fe'}
     rDict = {'proton': 'p', 'helium': 'h', 'oxygen': 'o', 'iron': 'f'}
 
     t0 = time.time()
@@ -45,15 +46,15 @@ def saveLLH(fileList, outFile):
                 continue
         children = list(set(children))
         compList = [n.split('_')[-1] for n in children if 'ShowerLLH_' in n]
+        print('compList = {}'.format(compList))
 
         # Get ShowerLLH cuts and info
         rrc = t.root.ShowerLLH_proton.col('exists').astype('bool')
         for comp in compList:
             r = rDict[comp]
             for value in ['x', 'y', 'energy']:
-                q[r + 'ML_' +
-                    value] = t.getNode('/ShowerLLH_' + comp).col(value)
-            q[r + 'LLH'] = t.getNode('/ShowerLLHParams_' + comp).col('maxLLH')
+                q[r+'ML_'+value] = t.getNode('/ShowerLLH_'+comp).col(value)
+            q[r+'LLH'] = t.getNode('/ShowerLLHParams_'+comp).col('maxLLH')
 
         # Other reconstruction info
         q['eventID'] = np.asarray(eventID(t.root.ShowerLLH_proton))
@@ -85,8 +86,8 @@ def saveLLH(fileList, outFile):
         d['llh_comp'][d[r + 'LLH'] == max_llh] = r
 
     for key in ['x', 'y', 'energy']:
-        d['ML_' + key] = np.array([d[r + 'ML_' + key][i]
-                                   for i, r in enumerate(d['llh_comp'])])
+        d['ML_' + key] = np.array([d[r + 'ML_' + key][i] 
+            for i, r in enumerate(d['llh_comp'])])
 
     # Check for multiple most-likely compositions
     badVals = np.sum(full_llhs == max_llh, axis=0)
@@ -148,7 +149,7 @@ def saveExtras(fileList, outFile, bintype):
 if __name__ == "__main__":
 
     # Import global path names
-    my.setupShowerLLH(verbose=False)
+    my.setupGlobals(verbose=False)
 
     p = argparse.ArgumentParser(
         description='Pulls desired info from hdf5 to npy for rapid reading')
