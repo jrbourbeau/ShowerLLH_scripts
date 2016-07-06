@@ -8,7 +8,7 @@ import numpy as np
 
 import support_functions.myGlobals as my
 import support_functions.simFunctions as simFunctions
-from support_functions.submit_npx4 import py_submit
+from support_functions.submitter import py_submit
 from support_functions.checkdir import checkdir
 
 if __name__ == "__main__":
@@ -37,12 +37,14 @@ if __name__ == "__main__":
 
     # Default parameters
     outDir = '{}/CountTables/'.format(my.llh_resource)
+    jobID = 'counttables_{}_{}'.format(args.sim, args.bintype)
     checkdir(outDir)
     if args.test and args.n == 100:
         args.n = 1
 
     cwd = os.getcwd()
-    exList, jobIDs = [], []
+    cmd = '{}/MakeHist.py'.format(cwd)
+    argList = []
 
     for sim in args.sim:
 
@@ -65,23 +67,14 @@ if __name__ == "__main__":
             batch.insert(0, gcd)
             batch = ' '.join(batch)
 
-            cmd = 'python {}/MakeHist.py'.format(cwd)
-            ex = '{} -f {} -b {} -o {}'.format(cmd,
-                                               batch, args.bintype, outFile)
-            if not args.test:
-                ex = ' '.join([my.env, ex])
-            exList += [[ex]]
-            jobIDs += ['counttables_%s_%04i' % (sim, bi)]
+            argList += ['-f {} -b {} -o {}'.format(batch,args.bintype,outFile)]
 
-    # Moderate number of submitted jobs
-    njobs = len(exList)
-    if njobs > 500:
-        yn = raw_input(
-            'About to submit {} jobs. You sure? [y|n]: '.format(njobs))
-        if yn != 'y':
-            raise SystemExit('Aborting...{}'.format(njobs))
+    # Write arguments to file
+    argFile = '{}/arguments/{}_arguments.txt'.format(my.npx4, jobID)
+    with open(argFile, 'w') as f:
+        for a in argList:
+            f.write('{}\n'.format(a))
 
     # Submit jobs
-    print('Submitting {} batches...'.format(njobs))
-    for ex, jobID in zip(exList, jobIDs):
-        py_submit(ex, test=args.test, jobID=jobID)
+    print('Submitting {} batches...'.format(len(argList)))
+    py_submit(cmd, argFile, my.npx4, test=args.test, jobID=jobID)

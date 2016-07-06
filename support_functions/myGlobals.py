@@ -11,8 +11,6 @@ def setupGlobals(verbose=True):
     llh_home = '/home/jbourbeau/ShowerLLH_scripts'
     llh_data = '/data/user/jbourbeau/ShowerLLH'
     llh_resource = '/data/user/jbourbeau/ShowerLLH/resources'
-    # llh_data = '/data/user/jbourbeau/showerllh'
-    # llh_resource = '/data/user/jbourbeau/showerllh/resources'
     npx4 = llh_home + '/support_functions/npx4'
 
     # Option to print changes to global variables

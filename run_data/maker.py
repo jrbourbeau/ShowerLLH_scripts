@@ -7,9 +7,9 @@ import glob
 import support_functions.myGlobals as my
 import support_functions.dataFunctions as df
 import support_functions.GoodRunList as grl
-# from goodrunlist.goodRunReader import getGoodDates
 import support_functions.simFunctions as simFunctions
-from support_functions.submit_npx4 import py_submit
+from support_functions.submitter import py_submit
+# from support_functions.submit_npx4 import py_submit
 from support_functions.checkdir import checkdir
 
 if __name__ == "__main__":
@@ -58,7 +58,6 @@ if __name__ == "__main__":
         if args.test and args.config != 'IT59':
             args.n = 2
 
-    # goodDateList = getGoodDates(args.config)
     g = grl.GoodRunList(config=args.config)
     good_date_list = g.get_good_dates()
     date_2_goodrun_num = g.date_to_goodrun_num()
@@ -68,7 +67,9 @@ if __name__ == "__main__":
         # goodDates = goodDates[:2]
 
     cwd = os.getcwd()
-    exList, jobIDs = [], []
+    cmd = '{}/MakeShowerLLH.py'.format(cwd)
+    jobID = 'showerLLH_data'
+    argList = []
 
     gcd = simFunctions.getGCD(args.config)
     for yyyymmdd in good_date_list:
@@ -77,8 +78,9 @@ if __name__ == "__main__":
         # files, gcdFiles = df.getDataFiles(args.config, yyyymmdd)
         # runList = list(set([df.getRun(f) for f in files]))
         run_nums = date_2_goodrun_num[yyyymmdd]
-        files, gcdFiles = df.get_data_files(args.config, yyyymmdd, run_nums, gcd=True)
-        gcdFiles = [gcd for gcd in gcdFiles if df.getRun(gcd) in run_nums]
+        # files, gcdFiles = df.get_data_files(args.config, yyyymmdd, run_nums, gcd=True)
+        files, gcdFiles = df.get_IT_data_files(g, args.config, yyyymmdd, gcd=True)
+        # gcdFiles = [gcd for gcd in gcdFiles if df.getRun(gcd) in run_nums]
         # gcdFiles = [gcd for gcd in gcdFiles if df.getRun(gcd) in runList]
         # files.sort()
         # files = df.getDataFiles(args.config, yyyymmdd)
@@ -124,38 +126,42 @@ if __name__ == "__main__":
                 if outtest in existingFiles:
                     continue
 
-            cmd = 'python %s/MakeShowerLLH.py' % cwd
-            cmd += ' -c %s -o %s' % (args.config, out)
-            cmd += ' --llhFile {}'.format(LLH_file)
-            if not args.test:
-                lfiles = ['%s/%s' % (outp, os.path.basename(f)) for f in batch]
-                lfiles = ' '.join(lfiles)
-                batch = ' '.join(batch)
-                cmd += ' --files %s' % (lfiles)
-                ex = [
-                    'mkdir -p %s' % outp,           # Make directory for output
-                    'cp %s %s' % (batch, outp),      # Copy files for local I/O
-                    '%s %s' % (my.env, cmd),        # Process files
-                    'rm -f %s' % lfiles,            # Remove copied i3 files
-                    'mv %s %s' % (out, outDir)      # Move output file
-                ]
-            else:
-                batch = ' '.join(batch)
-                cmd += ' --files %s' % batch
-                ex = [cmd]
+            argList += ['-c {} -o {} --llhFile {} --files {}'.format(
+                                                                     args.config,
+                                                                     out,
+                                                                     LLH_file,
+                                                                     ' '.join(batch))]
+            # cmd += ' -c %s -o %s' % (args.config, out)
+            # cmd += ' --llhFile {}'.format(LLH_file)
+            # if not args.test:
+            #     lfiles = ['%s/%s' % (outp, os.path.basename(f)) for f in batch]
+            #     lfiles = ' '.join(lfiles)       asdf
+            #     batch = ' '.join(batch)
+            #     cmd += ' --files %s' % (lfiles)
+            #     ex = [
+            #         'mkdir -p %s' % outp,           # Make directory for output
+            #         'cp %s %s' % (batch, outp),      # Copy files for local I/O
+            #         '%s %s' % (my.env, cmd),        # Process files
+            #         'rm -f %s' % lfiles,            # Remove copied i3 files
+            #         'mv %s %s' % (out, outDir)      # Move output file
+            #     ]
+            # else:
+            #     batch = ' '.join(batch)
+            #     cmd += ' --files %s' % batch
+            #     ex = [cmd]
 
-            exList += [ex]
-            jobIDs += ['showerllh_%s_%s_%i' % (args.config, yyyymmdd, bi)]
+            # exList += [ex]
+            # jobIDs += ['showerllh_%s_%s_%i' % (args.config, yyyymmdd, bi)]
 
     if args.test:
-        exList = exList[:2]
-    njobs = len(exList)
-    if njobs > 500:
-        yn = raw_input('Submit %i jobs? [y|n]: ' % njobs)
-        if yn != 'y':
-            raise SystemExit('Aborting...')
+        argList = argList[:2]
+    
+    # Write arguments to file
+    argFile = '{}/arguments/{}_arguments.txt'.format(my.npx4, jobID)
+    with open(argFile, 'w') as f:
+        for a in argList:
+            f.write('{}\n'.format(a))
 
-    print 'Submitting %i batches...' % njobs
-    for ex, jobID in zip(exList, jobIDs)[:10]:
-        print('ex = {}'.format(ex))
-        py_submit(ex, test=args.test, jobID=jobID)
+    # Submit jobs
+    print('Submitting {} batches...'.format(len(argList)))
+    py_submit(cmd, argFile, my.npx4, test=args.test, jobID=jobID)

@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v1/icetray-start
+#METAPROJECT /data/user/jbourbeau/metaprojects/icerec/V05-00-00/build
 
 import glob
 import argparse
@@ -20,7 +21,9 @@ if __name__ == "__main__":
     p.add_argument('--ctdir', dest='ctdir',
                    default=resourcedir + '/CountTables',
                    help='Location of CountTables to merge')
-    p.add_argument('--overwrite', action='store_true', dest='overwrite',
+    p.add_argument('--overwriteCounts', action='store_true', dest='overwriteCounts',
+                   default=False, help='Overwrite existing merged files')
+    p.add_argument('--overwriteLLH', action='store_true', dest='overwriteLLH',
                    default=False, help='Overwrite existing merged files')
     p.add_argument('--remove', dest='remove',
                    default=False, action='store_true',
@@ -36,7 +39,7 @@ if __name__ == "__main__":
 
     for sim in simlist:
         outfile = '{}.npy'.format(sim)
-        if not args.overwrite and os.path.exists(outfile):
+        if not args.overwriteCounts and os.path.exists(outfile):
             print('\n{} already exists. Skipping...'.format(outfile))
             continue
         filelist = glob.glob(sim + '_Part??????-??????.npy')
@@ -64,7 +67,7 @@ if __name__ == "__main__":
     for bintype in binlist:
 
         outfile = '{}/LLHTables_{}.npy'.format(my.llh_resource, bintype)
-        if not args.overwrite and os.path.exists(outfile):
+        if not args.overwriteLLH and os.path.exists(outfile):
             print('\n{} already exists. Skipping...'.format(outfile))
             continue
 

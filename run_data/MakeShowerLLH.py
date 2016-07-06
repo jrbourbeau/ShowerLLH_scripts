@@ -1,10 +1,11 @@
-#!/usr/bin/env python
+#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v1/icetray-start
+#METAPROJECT /data/user/jbourbeau/metaprojects/icerec/V05-00-00/build
 
 ##########################################################################
 # Runs the grid search on the given files and writes to hdf5 output
 ##########################################################################
 
-from icecube import dataio, toprec, ShowerLLH
+from icecube import icetray, dataio, toprec, ShowerLLH
 from I3Tray import *
 from icecube.tableio import I3TableWriter
 from icecube.hdfwriter import I3HDFTableService

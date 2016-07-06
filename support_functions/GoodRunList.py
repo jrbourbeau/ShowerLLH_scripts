@@ -70,7 +70,7 @@ class GoodRunList(object):
         # self.good_run_list = []  # list of all runs that have a good inice
         # entry
         self.configs = ['IT73','IT81-2011','IT81-2012',
-                        'IT81-2013','IT81-2014']
+                        'IT81-2013','IT81-2014','IT81-2015']
         # self.configs = ['IC86-2011', 'IC86-2012',
         #                 'IC86-2013', 'IC86-2014']
         self.add_GRL(config)
@@ -126,5 +126,15 @@ class GoodRunList(object):
         runs = self.get_good_runs()
         for run in runs:
             date_2_num[run.get_date()].append(run.run_id)
+
+        return date_2_num
+    
+    def date_to_goodruns(self):
+        dates = self.get_good_dates()
+        # initialize new dictionary with date keys and [] initial values
+        date_2_num = dict((date, [])for date in dates)
+        runs = self.get_good_runs()
+        for run in runs:
+            date_2_num[run.get_date()].append(run)
 
         return date_2_num

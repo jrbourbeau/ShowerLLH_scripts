@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v1/icetray-start
+#METAPROJECT /data/user/jbourbeau/metaprojects/icerec/V05-00-00/build
 
 #############################################################################
 # Makes the probability tables using FillHist and records as .npy files

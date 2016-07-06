@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 
-import glob, os, argparse
+import glob
+import os
+import argparse
 
-import myGlobals as my
-from npx4.submit_npx4 import py_submit
+import support_functions.myGlobals as my
+from support_functions.submitter import py_submit
+# from npx4.submit_npx4 import py_submit
 
 if __name__ == "__main__":
 
@@ -25,7 +28,7 @@ if __name__ == "__main__":
     args = p.parse_args()
 
     my.setupGlobals(verbose=False)
-    my.setupShowerLLH(verbose=False)
+    # my.setupShowerLLH(verbose=False)
 
     prefix = '%s/%s_data/files' % (my.llh_data, args.config)
     hdfMerge = '%s/build/hdfwriter/resources/scripts/merge.py' % my.offline

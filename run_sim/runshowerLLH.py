@@ -7,7 +7,8 @@ import argparse
 
 import support_functions.myGlobals as my
 import support_functions.simFunctions as simFunctions
-from support_functions.submit_npx4 import py_submit
+from support_functions.submitter import py_submit
+# from support_functions.submit_npx4 import py_submit
 from support_functions.checkdir import checkdir
 
 if __name__ == "__main__":
@@ -43,7 +44,8 @@ if __name__ == "__main__":
     args = p.parse_args()
 
     cwd = os.getcwd()
-    exList, jobIDs = [], []
+    jobID = 'showerLLH_sim'
+    argList = []
 
     for sim in args.sim:
 
@@ -90,16 +92,16 @@ if __name__ == "__main__":
             batch = ' '.join(batch)
 
             if args.bintype == 'MC':
-                cmd = 'python %s/MakeMC.py' % cwd
+                cmd = '%s/MakeMC.py' % cwd
                 arg = '--files %s -c %s -o %s' % (batch, config, out)
             elif args.bintype == 'lap':
-                cmd = 'python %s/MakeLaputop.py' % cwd
+                cmd = '%s/MakeLaputop.py' % cwd
                 arg = '--files %s -c %s -o %s' % (batch, config, out)
             elif args.bintype == 'extras':
-                cmd = 'python %s/MakeExtras.py' % cwd
+                cmd = '%s/MakeExtras.py' % cwd
                 arg = '--files %s -c %s -o %s' % (batch, config, out)
             else:
-                cmd = 'python %s/MakeShowerLLH.py' % cwd
+                cmd = '%s/MakeShowerLLH.py' % cwd
                 if args.cpp:
                     cmd += ' -cpp'
                     out = out.replace('.hdf5', '_cpp.hdf5')
@@ -109,21 +111,25 @@ if __name__ == "__main__":
                 arg += ' --llhFile %s' % (llhFile)
                 # arg += ' --gridFile %s --llhFile %s' % (gridFile, llhFile)
 
-            ex = ' '.join([cmd, arg])
-            if not args.test:
-                ex = ' '.join([my.env, ex])
+            # ex = ' '.join([cmd, arg])
+            # if not args.test:
+            #     ex = ' '.join([my.env, ex])
 
-            exList += [[ex]]
-            jobIDs += ['showerllh_%s_%04i' % (sim, bi)]
+            # exList += [[ex]]
+            # jobIDs += ['showerllh_%s_%04i' % (sim, bi)]
+            argList += [arg]
 
-    # Moderate number of submitted jobs
-    njobs = len(exList)
-    if njobs > 500:
-        yn = raw_input('About to submit %i jobs. You sure? [y|n]: ' % njobs)
-        if yn != 'y':
-            raise SystemExit('Aborting {} jobs...'.format(njobs))
+    # # Submit jobs
+    # print('Submitting {} batches...'.format(njobs))
+    # for ex, jobID in zip(exList, jobIDs):
+    #     py_submit(ex, test=args.test, jobID=jobID)
+    
+    # Write arguments to file
+    argFile = '{}/arguments/{}_arguments.txt'.format(my.npx4, jobID)
+    with open(argFile, 'w') as f:
+        for a in argList:
+            f.write('{}\n'.format(a))
 
     # Submit jobs
-    print('Submitting {} batches...'.format(njobs))
-    for ex, jobID in zip(exList, jobIDs):
-        py_submit(ex, test=args.test, jobID=jobID)
+    print('Submitting {} batches...'.format(len(argList)))
+    py_submit(cmd, argFile, my.npx4, test=args.test, jobID=jobID)

@@ -38,7 +38,7 @@ def py_submit(exelines, jobID=None, sublines=None, test=False):
 		"",
 		#"cd %s" % os.getcwd(),
 		#"eval `/cvmfs/icecube.opensciencegrid.org/setup.sh`",
-		"{}".format(path),
+		# "{}".format(path),
 		""
 	]
 	lines += exelines
@@ -63,6 +63,7 @@ def py_submit(exelines, jobID=None, sublines=None, test=False):
 		"Notification = Never\n",
 		#"Notification = Complete\n",
 		#"notify_user = james.bourbeau@icecube.wisc.edu\n",
+        "getenv = True\n",
 		"Queue\n"
 	]
 
