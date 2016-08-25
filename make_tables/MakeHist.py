@@ -11,14 +11,9 @@ import time
 
 from icecube import icetray, dataio, ShowerLLH
 from I3Tray import I3Tray
-import support_functions.myGlobals as my
-from support_functions.checkdir import checkdir
 
 
 if __name__ == "__main__":
-
-    # Global variables setup for path names
-    my.setupGlobals(verbose=False)
 
     p = argparse.ArgumentParser(
         description='Builds binned histograms for use with ShowerLLH')
@@ -38,10 +33,24 @@ if __name__ == "__main__":
     # Get LLHBins
     LLH_bins = ShowerLLH.LLHBins(args.bintype)
 
-    # Execute
+    # Construct list of non-truncated files to process
+    good_file_list = []
+    for test_file in args.files:
+        try:
+            test_tray = I3Tray()
+            test_tray.Add('I3Reader', FileName=test_file)
+            test_tray.Execute()
+            test_tray.Finish()
+            good_file_list.append(test_file)
+        except:
+            print('file {} is truncated'.format(test_file))
+            pass
+    del test_tray
+
+    # Execute FillHist on good files
     t0 = time.time()
     tray = I3Tray()
-    tray.Add('I3Reader', FileNameList=args.files)
+    tray.Add('I3Reader', FileNameList=good_file_list)
     tray.Add(ShowerLLH.FillHist,
              binDict=LLH_bins.bins,
              bintype=LLH_bins.bintype,

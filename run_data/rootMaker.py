@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 
-import argparse, ROOT, tables, glob, os, re
+import argparse
+import ROOT
+import tables
+import glob
+import os
+import re
 import numpy as np
 import root_numpy
 
@@ -16,15 +21,15 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser(description='Creates root files from hdf5 \
             files with ShowerLLH info for use with anisotropy scripts')
     p.add_argument('-c', '--config', dest='config',
-            default='IT73',
-            help='Detector configuration')
+                   default='IT73',
+                   help='Detector configuration')
     p.add_argument('-b', '--bintype', dest='bintype',
-            default='logdist',
-            help='ShowerLLH bin type')
+                   default='logdist',
+                   help='ShowerLLH bin type')
     p.add_argument('--overwrite', dest='overwrite',
-            default=False, action='store_true',
-            help='Overwrite existing files')
-    #p.add_argument('-d', '--date', dest='date',
+                   default=False, action='store_true',
+                   help='Overwrite existing files')
+    # p.add_argument('-d', '--date', dest='date',
     #        default='20100601',
     #        help='Date to run over yyyymmdd (Optional)')
     args = p.parse_args()
@@ -55,35 +60,35 @@ if __name__ == "__main__":
         # Extract information from hdf5 file
         print 'Working on %s...' % hdf5File
         t = tables.openFile(hdf5File)
-        compDict = {'proton':'p','helium':'h','oxygen':'o','iron':'f'}
+        compDict = {'proton': 'p', 'helium': 'h', 'oxygen': 'o', 'iron': 'f'}
         d = {}
         # Reconstruction
-        for comp in ['proton','helium','oxygen','iron']:
+        for comp in ['proton', 'helium', 'oxygen', 'iron']:
             print 'Working on %s...' % comp
             r = compDict[comp]
-            d[r+'ML_energy'] = t.getNode('/ShowerLLH_'+comp).col('energy')
-            d[r+'LLH'] = t.getNode('/ShowerLLHParams_'+comp).col('maxLLH')
+            d[r + 'ML_energy'] = t.getNode('/ShowerLLH_' + comp).col('energy')
+            d[r + 'LLH'] = t.getNode('/ShowerLLHParams_' + comp).col('maxLLH')
         # Event header
-        for key in ['Run','Event','SubEvent']:
+        for key in ['Run', 'Event', 'SubEvent']:
             d[key] = t.root.ShowerLLH_proton.col(key)
-        eventID = np.array(['%s_%s_%s' % 
-                (d['Run'][i], d['Event'][i], d['SubEvent'][i])
-                for i in range(len(d['Run']))])
+        eventID = np.array(['%s_%s_%s' %
+                            (d['Run'][i], d['Event'][i], d['SubEvent'][i])
+                            for i in range(len(d['Run']))])
         t.close()
 
         # Get most likely composition
-        rList = ['p','h','o','f']
-        full_llhs = np.array([d[r+'LLH'] for r in rList])
+        rList = ['p', 'h', 'o', 'f']
+        full_llhs = np.array([d[r + 'LLH'] for r in rList])
         max_llh = np.amax(full_llhs, axis=0)
         d['llh_comp'] = np.array(['' for i in range(len(d['pLLH']))])
         for r in rList:
-            d['llh_comp'][d[r+'LLH'] == max_llh] = r
-        d['ML_energy'] = np.array([d[r+'ML_energy'][i]
-                for i, r in enumerate(d['llh_comp'])])
+            d['llh_comp'][d[r + 'LLH'] == max_llh] = r
+        d['ML_energy'] = np.array([d[r + 'ML_energy'][i]
+                                   for i, r in enumerate(d['llh_comp'])])
 
         # Check for multiple most-likely compositions (mark as bad)
         badVals = np.sum(full_llhs == max_llh, axis=0)
-        badVals = (badVals-1).astype('bool')
+        badVals = (badVals - 1).astype('bool')
         d['llh_comp'][badVals] = ''
         d['ML_energy'][badVals] = np.nan
 
@@ -103,7 +108,7 @@ if __name__ == "__main__":
         ## WRITE TO FILE ##
         # Most likely composition
         try:
-            values = np.zeros(nentries, dtype=[('comp','S1')])
+            values = np.zeros(nentries, dtype=[('comp', 'S1')])
             values[cut] = d['llh_comp'][:]
             root_numpy.array2root(values, outFile, 'llh_comp', 'recreate')
         except ValueError:
@@ -111,17 +116,13 @@ if __name__ == "__main__":
             continue
 
         # Most likely energy
-        values = np.zeros(nentries, dtype=[('energy',float)])
+        values = np.zeros(nentries, dtype=[('energy', float)])
         values[cut] = d['ML_energy'][:]
         root_numpy.array2root(values, outFile, 'ML_energy')
 
         # Likelihoods
-        keys = ['pLLH','hLLH','oLLH','fLLH']
+        keys = ['pLLH', 'hLLH', 'oLLH', 'fLLH']
         for key in keys:
             values = np.zeros(nentries, dtype=[('llh', float)])
             values[cut] = d[key][:]
             root_numpy.array2root(values, outFile, key)
-
-
-
-

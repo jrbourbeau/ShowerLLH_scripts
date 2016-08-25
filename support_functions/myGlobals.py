@@ -5,8 +5,8 @@ def setupGlobals(verbose=True):
     globalVals = globals().keys()
     global npx4, env, offline
     global llh_home, llh_data, llh_resource
-    offline = '/data/user/jbourbeau/offline/icerec/V05-00-00'
-    env = '/data/user/jbourbeau/offline/icerec/V05-00-00/build/env-shell.sh'
+    offline = '/data/user/jbourbeau/metaprojects/icerec/V05-00-00'
+    env = '/data/user/jbourbeau/metaprojects/icerec/V05-00-00/build/env-shell.sh'
 
     llh_home = '/home/jbourbeau/ShowerLLH_scripts'
     llh_data = '/data/user/jbourbeau/ShowerLLH'

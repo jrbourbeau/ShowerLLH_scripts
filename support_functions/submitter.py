@@ -6,6 +6,7 @@
 
 import os
 import time
+import glob
 
 def py_submit(executable, argfile, npx4dir, 
               jobID=None, sublines=None, test=False):

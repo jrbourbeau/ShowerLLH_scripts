@@ -78,30 +78,34 @@ def getDataFiles(config, yyyymmdd, gcd=True):
 
 def get_IT_data_files(grl, config, yyyymmdd, gcd=True):
 
+    # Check that yyyymmdd is a good date in the good run list
+    good_date_list = grl.get_good_dates()
+    if not yyyymmdd in good_date_list:
+        SystemExit('{} is not a good date (see good run list)'.format(yyyymmdd))
+
     date_2_goodrun = grl.date_to_goodruns()
 
     if config == 'IT59':
         it59prefix = '/data/ana/CosmicRay/IceTop_level3/exp/IC59'
         DSTfiles = 'IT59*.i3.gz'
-        gcdFormat  = 'Level1_*GCD.i3.gz'
+        gcdFormat = 'Level1_*GCD.i3.gz'
     if config == 'IT73':
         DSTfiles = 'Level2a_*_IT.i3.bz2'
-        gcdFormat  = 'Level2a_*_GCD.i3.bz2'
+        gcdFormat = 'Level2a_*_GCD.i3.bz2'
     if config == 'IT81-2011':
         DSTfiles = 'Level2_*Part*_IT.i3.bz2'
-        gcdFormat  = 'Level2_*_GCD.i3.gz'
+        gcdFormat = 'Level2_*_GCD.i3.gz'
     if config == 'IT81-2012':
         DSTfiles = 'Level2_*Subrun*_IT.i3.bz2'
-        gcdFormat  = 'Level2_*_GCD.i3.gz' 
-    if config in ['IT81-2013','IT81-2014','IT81-2015']:
+        gcdFormat = 'Level2_*_GCD.i3.gz'
+    if config in ['IT81-2013', 'IT81-2014', 'IT81-2015']:
         DSTfiles = 'Level2_*Subrun*_IT.i3.bz2'
         gcdFormat = 'Level2_*_GCD.i3.gz'
-    
+
     files = []
-    for date in date_2_goodrun:
-        for run in date_2_goodrun[date]:
-            path = run.path
-            files += glob.glob(path+'/'+DSTfiles)
+    for run in date_2_goodrun[yyyymmdd]:
+        path = run.path
+        files += glob.glob(path + '/' + DSTfiles)
     files = sorted(files)
 
     if not gcd:
@@ -109,12 +113,11 @@ def get_IT_data_files(grl, config, yyyymmdd, gcd=True):
 
     # Repeat for GCD files
     GCDs = []
-    for date in date_2_goodrun:
-        for run in date_2_goodrun[date]:
-            path = run.path
-            GCDs += glob.glob(path+'/'+gcdFormat)
+    for run in date_2_goodrun[yyyymmdd]:
+        path = run.path
+        GCDs += glob.glob(path + '/' + gcdFormat)
     GCDs = sorted(GCDs)
-    
+
     return files, GCDs
 
 

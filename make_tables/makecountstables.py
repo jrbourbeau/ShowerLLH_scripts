@@ -6,21 +6,21 @@ import os
 import re
 import numpy as np
 
-import support_functions.myGlobals as my
-import support_functions.simFunctions as simFunctions
-from support_functions.submitter import py_submit
+import support_functions.paths as paths
+from support_functions.dag_submitter import py_submit
 from support_functions.checkdir import checkdir
+import support_functions.simfunctions as simfunctions
 
 if __name__ == "__main__":
 
-    # Global variables setup for path names
-    my.setupGlobals(verbose=False)
-    simOutput = simFunctions.getSimOutput()
+    # Setup global path names
+    mypaths = paths.Paths()
+    sim_output = simfunctions.getSimOutput()
 
     p = argparse.ArgumentParser(
         description='Makes binned histograms for use with ShowerLLH',
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=simOutput)
+        epilog=sim_output)
     p.add_argument('-s', '--sim', dest='sim', nargs='*',
                    help='Simulation dataset to run over')
     p.add_argument('-n', '--n', dest='n', type=int,
@@ -28,7 +28,7 @@ if __name__ == "__main__":
                    help='Number for files to run per submission batch')
     p.add_argument('-b', '--bintype', dest='bintype',
                    default='standard',
-                   choices=['standard', 'nozenith', 'logdist','nosnow'],
+                   choices=['standard', 'nozenith', 'logdist', 'nosnow'],
                    help='Option for a variety of preset bin values')
     p.add_argument('--test', dest='test', action='store_true',
                    default=False,
@@ -36,45 +36,41 @@ if __name__ == "__main__":
     args = p.parse_args()
 
     # Default parameters
-    outDir = '{}/CountTables/'.format(my.llh_resource)
-    jobID = 'counttables_{}_{}'.format(args.sim, args.bintype)
-    checkdir(outDir)
+    outdir = '{}/counttables'.format(mypaths.llh_resource)
+    checkdir(outdir + '/')
     if args.test and args.n == 100:
         args.n = 1
 
     cwd = os.getcwd()
     cmd = '{}/MakeHist.py'.format(cwd)
-    argList = []
-
     for sim in args.sim:
+        # Build arglist for condor submission
+        arglist = []
 
         # Build fileList
-        config = simFunctions.sim2cfg(sim)
-        files = simFunctions.getSimFiles(sim)
-        gcd = simFunctions.getGCD(config)
+        config = simfunctions.sim2cfg(sim)
+        files = simfunctions.getSimFiles(sim)
+        gcd = simfunctions.getGCD(config)
         # Split into batches
         batches = [files[i:i + args.n] for i in range(0, len(files), args.n)]
+
         if args.test:
-            batches = batches[:2]
+            batches = batches[:1]
 
         for bi, batch in enumerate(batches):
 
             start = re.split('\.', batch[0])[-3]
             end = re.split('\.', batch[-1])[-3]
-            outFile = '{}CountTable_{}_{}'.format(outDir, sim, args.bintype)
-            outFile += '_Part' + start + '-' + end + '.npy'
+            outFile = '{}/counttable_{}_{}'.format(outdir, sim, args.bintype)
+            outFile += '_part' + start + '-' + end + '.npy'
 
             batch.insert(0, gcd)
             batch = ' '.join(batch)
 
-            argList += ['-f {} -b {} -o {}'.format(batch,args.bintype,outFile)]
+            arglist += ['-f {} -b {} -o {}'.format(
+                batch, args.bintype, outFile)]
 
-    # Write arguments to file
-    argFile = '{}/arguments/{}_arguments.txt'.format(my.npx4, jobID)
-    with open(argFile, 'w') as f:
-        for a in argList:
-            f.write('{}\n'.format(a))
-
-    # Submit jobs
-    print('Submitting {} batches...'.format(len(argList)))
-    py_submit(cmd, argFile, my.npx4, test=args.test, jobID=jobID)
+        # Submit jobs
+        jobID = 'ShowerLLH_counttables_{}_{}'.format(sim, args.bintype)
+        py_submit(cmd, arglist, mypaths.npx4, test=args.test,
+                  jobID=jobID)

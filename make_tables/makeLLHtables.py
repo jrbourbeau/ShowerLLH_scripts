@@ -8,33 +8,33 @@ import re
 import numpy as np
 
 from icecube import ShowerLLH
-import support_functions.myGlobals as my
+import support_functions.paths as paths
 
 if __name__ == "__main__":
 
     # Global variables setup for path names
-    my.setupGlobals(verbose=False)
-    resourcedir = my.llh_resource
+    mypaths = paths.Paths()
+    resourcedir = mypaths.llh_resource
 
     p = argparse.ArgumentParser(
         description='Merges all count tables in a given directory')
     p.add_argument('--ctdir', dest='ctdir',
-                   default=resourcedir + '/CountTables',
-                   help='Location of CountTables to merge')
+                   default=resourcedir + '/counttables',
+                   help='Location of \'counttables\' directory to merge')
     p.add_argument('--overwriteCounts', action='store_true', dest='overwriteCounts',
                    default=False, help='Overwrite existing merged files')
     p.add_argument('--overwriteLLH', action='store_true', dest='overwriteLLH',
                    default=False, help='Overwrite existing merged files')
     p.add_argument('--remove', dest='remove',
                    default=False, action='store_true',
-                   help='Remove unmerged hdf5 files')
+                   help='Remove unmerged counttables .npy files')
     args = p.parse_args()
 
     # --------
     # Merge counts table
     # --------
     # Build list of simulations
-    masterlist = glob.glob(args.ctdir + '/CountTable_*_Part??????-??????.npy')
+    masterlist = glob.glob(args.ctdir + '/counttable_*_part??????-??????.npy')
     simlist = np.unique(['_'.join(f.split('_')[:-1]) for f in masterlist])
 
     for sim in simlist:
@@ -42,7 +42,7 @@ if __name__ == "__main__":
         if not args.overwriteCounts and os.path.exists(outfile):
             print('\n{} already exists. Skipping...'.format(outfile))
             continue
-        filelist = glob.glob(sim + '_Part??????-??????.npy')
+        filelist = glob.glob(sim + '_part??????-??????.npy')
         filelist.sort()
 
         if len(filelist) == 0:
@@ -58,15 +58,15 @@ if __name__ == "__main__":
     # --------
     # Convert counts to log-probability
     # --------
-    masterlist = glob.glob('{}/CountTable_*.npy'.format(args.ctdir))
-    mergedlist = [f for f in masterlist if '_Part' not in f]
+    masterlist = glob.glob('{}/counttable_*.npy'.format(args.ctdir))
+    mergedlist = [f for f in masterlist if '_part' not in f]
 
     # Get list of LLH bin schemes used
     binlist = np.unique([re.split('_|\.', f)[-2] for f in mergedlist])
 
     for bintype in binlist:
 
-        outfile = '{}/LLHTables_{}.npy'.format(my.llh_resource, bintype)
+        outfile = '{}/LLH_tables_{}.npy'.format(mypaths.llh_resource, bintype)
         if not args.overwriteLLH and os.path.exists(outfile):
             print('\n{} already exists. Skipping...'.format(outfile))
             continue
@@ -85,4 +85,5 @@ if __name__ == "__main__":
             continue
 
         table = ShowerLLH.LLHTable(bintype=bintype)
+        print('Making {} LLH tables...\n'.format(bintype))
         table.make_LLH_tables(filelist, outfile)

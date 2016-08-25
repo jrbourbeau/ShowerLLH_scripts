@@ -30,7 +30,7 @@ if __name__ == "__main__":
     p.add_argument('-c', '--config', dest='config',
                    help='Detector configuration')
     # p.add_argument('--gridFile', dest='gridFile',
-    #                help='File containing locations for iterative grid search')
+    # help='File containing locations for iterative grid search')
     p.add_argument('--llhFile', dest='llhFile',
                    help='File with llh tables for reconstruction')
     p.add_argument('--old', dest='old',
@@ -70,6 +70,7 @@ if __name__ == "__main__":
     t0 = time.time()
 
     tray = I3Tray()
+    tray.context['I3FileStager'] = dataio.get_stagers(staging_directory=os.environ["_CONDOR_SCRATCH_DIR"])
     tray.AddModule('I3Reader', FileNameList=args.files)
     hdf = I3HDFTableService(args.outFile)
 
@@ -108,7 +109,7 @@ if __name__ == "__main__":
         tray.AddModule(moveSmall)
 
     def IceTop_cuts(frame):
-        passCuts = False     
+        passCuts = False
         if frame.Has(recoTrack):
             c1 = (np.cos(frame[recoTrack].dir.zenith) >= 0.8)   # zenith cut
             c2 = (not frame['LoudestOnEdge'].value)             # edge cut
