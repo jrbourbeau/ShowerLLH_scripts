@@ -24,19 +24,19 @@ if __name__ == "__main__":
     args = p.parse_args()
 
     cwd = os.getcwd()
-    filelist = ['/make_tables/MakeHist.py',
-                '/make_tables/makeLLHtables.py',
-                '/make_tables/merger.py',
-                '/make_tables/normalize.py',
-                '/run_sim/MakeShowerLLH.py',
-                '/run_sim/MakeExtras.py',
-                '/run_sim/MakeMC.py',
-                '/run_data/MakeShowerLLH.py']
+    filelist = ['make_tables/MakeHist.py',
+                'make_tables/merger.py',
+                'make_tables/normalize.py',
+                'run_sim/MakeShowerLLH.py',
+                'run_sim/MakeExtras.py',
+                'run_sim/MakeMC.py',
+                'run_data/merge.py',
+                'run_data/MakeShowerLLH.py']
 
     # Set up 'shebang' line in appropreiate python scripts
     # to allow them to work as stand-alone IceTray scripts
     for file in filelist:
-        with open(cwd + file, 'r') as original_file:
+        with open(cwd + '/' + file, 'r') as original_file:
             current_toolset_line = original_file.readline()
             current_metaproject_line = original_file.readline()
             current_toolset = current_toolset_line.split('/')[5]
@@ -46,7 +46,7 @@ if __name__ == "__main__":
             new_metaproject_line = current_metaproject_line.replace(
                 current_metaproject,
                 args.metaproject)
-            with open(cwd + file, 'w') as new_file:
+            with open(cwd + '/' + file, 'w') as new_file:
                 new_file.write(new_toolset_line)
                 new_file.write(new_metaproject_line)
                 shutil.copyfileobj(original_file, new_file)
@@ -57,12 +57,12 @@ if __name__ == "__main__":
         current_llhdir_line = lines[7]
         current_llhdir = current_llhdir_line.split()[-1].strip()
         new_llhdir_line = current_llhdir_line.replace(current_llhdir,
-                                                        args.llh_dir)
+                                                        '"'+args.llh_dir+'"')
         current_metaproject_line = lines[6]
         current_metaproject = current_metaproject_line.split()[-1].strip()
         new_metaproject_line = current_metaproject_line.replace(
             current_metaproject,
-            args.metaproject)
+            '"'+args.metaproject+'"')
 
         with open(cwd + '/support_functions/paths.py', 'w') as new_paths:
             lines[7] = new_llhdir_line

@@ -23,7 +23,8 @@ def get_ShowerLLH_data_argdict(llh_dir, *good_date_list, **args):
     outdir = '{}/{}_data/files'.format(llh_dir, args['config'])
     checkdir(outdir + '/')
     it_geo = df.it_geo(args['config'])
-    LLH_file = '{}/LLH_table_{}.npy'.format(args['resources'], args['config'])
+    LLH_file = '{}/LLH_table_{}.npy'.format(args['resources'], args['bintype'])
+    # LLH_file = '{}/LLH_table_{}.npy'.format(args['resources'], args['config'])
     if not args['n']:
         if args['config'] == 'IT59':
             args['n'] = 1
@@ -33,7 +34,7 @@ def get_ShowerLLH_data_argdict(llh_dir, *good_date_list, **args):
             args['n'] = 80
         if args['config'] in ['IT81-2013', 'IT81-2014', 'IT81-2015']:
             args['n'] = 40
-        if args.test and args['config'] != 'IT59':
+        if args['test'] and args['config'] != 'IT59':
             args['n'] = 2
     gcd = simfunctions.getGCD(args['config'])
 
@@ -70,7 +71,8 @@ def get_ShowerLLH_data_argdict(llh_dir, *good_date_list, **args):
                 batch.insert(0, run_gcd_files[0])
 
                 # Name outfile
-                out = '{}/DataLLH_{}_{}'.format(outdir, yyyymmdd, args['bintype'])
+                out = '{}/DataLLH_{}_{}'.format(outdir,
+                                                yyyymmdd, args['bintype'])
                 start = batch[1].split('_')[-2].replace('Part', '')
                 end = batch[-1].split('_')[-2].replace('Part', '')
                 out += '_part{}-{}.hdf5'.format(start, end)
@@ -82,48 +84,24 @@ def get_ShowerLLH_data_argdict(llh_dir, *good_date_list, **args):
                     ' '.join(batch))]
 
         if args['test']:
-            arglist = arglist[:2]
+            arglist = arglist[:1]
         argdict[yyyymmdd] = arglist
-
 
     return argdict
 
 
-def get_merge_argdict(llh_dir, *good_date_list, **args):
+def get_merge_argdict(*good_run_list, **args):
 
     # Build arglist for condor submission
     merge_argdict = {}
-
-    prefix = '{}/{}_data/files'.format(llh_dir, args['config'])
-    # masterlist = glob.glob(
-    #     '{}/DataLLH_????????_{}_part*.hdf5'.format(prefix, args['bintype']))
-    # masterlist.sort()
-
-    # dates = [os.path.basename(f).split('_')[1] for f in masterlist]
-    # dates = np.unique(dates)
-    # if args['date']:
-    #     dates = [yyyymmdd for yyyymmdd in dates if args['date'] in yyyymmdd]
-
-    for date in good_date_list:
-        date_variables = {}
-
-        outfile = '{}/DataLLH_{}_{}.hdf5'.format(prefix, date, args['bintype'])
-        # Check if file exists
-        if os.path.isfile(outfile) and not args['overwrite']:
-            print('Outfile {} already exists. Skipping...'.format(outfile))
-            continue
-        if os.path.isfile(outfile) and args['overwrite']:
-            print('Outfile {} already exists. Removing...'.format(outfile))
-            os.remove(outfile)
-
-        # Build list of files and destination
-        files = glob.glob('{}/DataLLH_{}_{}_part*.hdf5'.format(prefix, date, args['bintype']))
-        files.sort()
-        infiles = ' '.join(files)
-
-        date_variables['outfile'] = outfile
-        date_variables['infiles'] = infiles
-        merge_argdict[date] = date_variables
+    for yyyymmdd in good_run_list:
+        merge_args = '--date {} -b {} -c {}'.format(
+            yyyymmdd, args['bintype'], args['config'])
+        if args['overwrite']:
+            merge_args += ' --overwrite'
+        if args['test']:
+            merge_args += ' --test'
+        merge_argdict[yyyymmdd] = merge_args
 
     return merge_argdict
 
@@ -141,7 +119,7 @@ def make_submit_script(executable, jobID, script_path, condordir):
              "output = {}/outs/{}.out\n".format(condordir, jobID),
              "error = {}/errors/{}.error\n".format(condordir, jobID),
              "notification = Never\n",
-             "+AccountingGroup=\"long.$ENV(USER)\"\n",
+             # "+AccountingGroup=\"long.$ENV(USER)\"\n",
              "queue \n"]
 
     condor_script = script_path
@@ -150,27 +128,6 @@ def make_submit_script(executable, jobID, script_path, condordir):
 
     return
 
-
-def make_merge_submit_script(executable, jobID, script_path, condordir):
-
-    checkdir(script_path)
-
-    lines = ["universe = vanilla\n",
-             "getenv = true\n",
-             "executable = {}\n".format(executable),
-             "arguments = $(CMD) $(OUTFILE) $(INFILES)\n",
-             "log = {}/logs/{}.log\n".format(condordir, jobID),
-             "output = {}/outs/{}.out\n".format(condordir, jobID),
-             "error = {}/errors/{}.error\n".format(condordir, jobID),
-             "notification = Never\n",
-             "+AccountingGroup=\"long.$ENV(USER)\"\n",
-             "queue \n"]
-
-    condor_script = script_path
-    with open(condor_script, 'w') as f:
-        f.writelines(lines)
-
-    return
 
 def getjobID(jobID, llh_dir):
     jobID += time.strftime('_%Y%m%d')
@@ -197,7 +154,7 @@ if __name__ == '__main__':
                    help='Option for a variety of preset bin values')
     p.add_argument('-d', '--date', dest='date',
                    help='Date to run over (yyyy[mmdd])')
-    p.add_argument('-n', dest='n', type=int, default=20,
+    p.add_argument('-n', dest='n',
                    help='Number for files to run per submission batch')
     p.add_argument('--nomerge', dest='nomerge', action='store_true',
                    default=False,
@@ -225,12 +182,14 @@ if __name__ == '__main__':
 
     cwd = os.getcwd()
     # Set up MakeShowerLLH.py condor script and arguments
-    ShowerLLH_data_jobID = 'MakeShowerLLH_data_{}_{}'.format(args.config, args.bintype)
+    ShowerLLH_data_jobID = 'MakeShowerLLH_data_{}_{}'.format(
+        args.config, args.bintype)
     if args.date:
         ShowerLLH_data_jobID += '_{}'.format(date)
     ShowerLLH_data_jobID = getjobID(ShowerLLH_data_jobID, mypaths.llh_dir)
-    ShowerLLH_data_cmd = '{}/MakeShowerLLH.py'.format(cwd)
-    ShowerLLH_data_argdict = get_ShowerLLH_data_argdict(mypaths.llh_dir, *good_date_list, **opts)
+    ShowerLLH_data_cmd = '{}/run_data/MakeShowerLLH.py'.format(cwd)
+    ShowerLLH_data_argdict = get_ShowerLLH_data_argdict(
+        mypaths.llh_dir, *good_date_list, **opts)
     ShowerLLH_data_condor_script = '{}/condor/submit_scripts/MakeShowerLLH_data_condor_script.submit'.format(
         mypaths.llh_dir)
     make_submit_script(ShowerLLH_data_cmd, ShowerLLH_data_jobID,
@@ -238,16 +197,17 @@ if __name__ == '__main__':
 
     # Set up merge condor script and arguments
     if not args.nomerge:
-        merge_jobID = 'ShowerLLH_datamerge_{}_{}'.format(args.config, args.bintype)
+        merge_jobID = 'ShowerLLH_datamerge_{}_{}'.format(
+            args.config, args.bintype)
         if args.date:
             merge_jobID += '_{}'.format(args.date)
         merge_jobID = getjobID(merge_jobID, mypaths.llh_dir)
-        merge_cmd = '{}/run_data/merge.sh'.format(cwd)
-        merge_argdict = get_merge_argdict(mypaths.llh_dir, *good_date_list, **opts)
+        merge_cmd = '{}/run_data/merge.py'.format(cwd)
+        merge_argdict = get_merge_argdict(*good_date_list, **opts)
         merge_condor_script = '{}/condor/submit_scripts/ShowerLLH_datamerge_condor_script.submit'.format(
             mypaths.llh_dir)
-        make_merge_submit_script(merge_cmd, merge_jobID, merge_condor_script,
-                           mypaths.llh_dir + '/condor')
+        make_submit_script(merge_cmd, merge_jobID, merge_condor_script,
+                                 mypaths.llh_dir + '/condor')
 
     # Set up dag file
     jobID = 'ShowerLLH_data_{}_{}'.format(args.config, args.bintype)
@@ -259,24 +219,23 @@ if __name__ == '__main__':
     checkdir(dag_file)
     with open(dag_file, 'w') as dag:
         for yyyymmdd in ShowerLLH_data_argdict.keys():
+            # Check that there is data for yyyymmdd
+            if len(ShowerLLH_data_argdict[yyyymmdd]) == 0:
+                continue
             parent_string = 'Parent '
             for i, arg in enumerate(ShowerLLH_data_argdict[yyyymmdd]):
                 dag.write('JOB LLHdata_{}_p{} '.format(yyyymmdd, i) +
-                            ShowerLLH_data_condor_script + '\n')
+                          ShowerLLH_data_condor_script + '\n')
                 dag.write('VARS LLHdata_{}_p{} '.format(yyyymmdd, i) +
-                            'ARGS="' + arg + '"\n')
+                          'ARGS="' + arg + '"\n')
                 parent_string += 'LLHdata_{}_p{} '.format(yyyymmdd, i)
             if not args.nomerge:
-                hdf5_merge = '{}/build/hdfwriter/resources/scripts/merge.py'.format(mypaths.metaproject)
                 dag.write('JOB merge_{} '.format(
                     yyyymmdd) + merge_condor_script + '\n')
                 dag.write('VARS merge_{} '.format(yyyymmdd) +
-                          'VARS merge_{} '.format(yyyymmdd) + 'CMD="' + hdf5_merge + '"\n' +
-                          'VARS merge_{} '.format(yyyymmdd) + 'OUTFILE="' + merge_argdict[yyyymmdd]['outfile'] + '"\n' +
-                          'VARS merge_{} '.format(yyyymmdd) + 'INFILES="' + merge_argdict[yyyymmdd]['infiles'] + '"\n')
+                          'ARGS="' + merge_argdict[yyyymmdd] + '"\n')
                 child_string = 'Child merge_{}'.format(yyyymmdd)
                 dag.write(parent_string + child_string + '\n')
 
-
-    # # Submit jobs
-    # os.system('condor_submit_dag -maxjobs {} {}'.format(args.maxjobs, dag_file))
+    # Submit jobs
+    os.system('condor_submit_dag -maxjobs {} {}'.format(args.maxjobs, dag_file))

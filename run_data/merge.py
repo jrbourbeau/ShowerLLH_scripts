@@ -7,7 +7,6 @@ import argparse
 import numpy as np
 
 import support_functions.paths as paths
-from submit_condor import DAG_submit
 
 if __name__ == "__main__":
 
@@ -31,7 +30,7 @@ if __name__ == "__main__":
     args = p.parse_args()
 
     prefix = '{}/{}_data/files'.format(mypaths.llh_dir, args.config)
-    cmd = '{}/build/hdfwriter/resources/scripts/merge.py'.format(
+    cmd = 'python {}/build/hdfwriter/resources/scripts/merge.py'.format(
         mypaths.metaproject)
     masterlist = glob.glob(
         '{}/DataLLH_????????_{}_part*.hdf5'.format(prefix, args.bintype))
@@ -44,11 +43,6 @@ if __name__ == "__main__":
 
     cmd = 'python {}/build/hdfwriter/resources/scripts/merge.py'.format(
         mypaths.metaproject)
-    globaljobID = 'ShowerLLH_datamerge_{}_{}'.format(args.config, args.bintype)
-    jobID_list = []
-    infiles_list = []
-    outfile_list = []
-
     for date in dates:
         outfile = '{}/DataLLH_{}_{}.hdf5'.format(prefix, date, args.bintype)
         # Check if file exists
@@ -62,18 +56,10 @@ if __name__ == "__main__":
         # Build list of files and destination
         files = glob.glob('{}/DataLLH_{}_{}_part*.hdf5'.format(prefix, date, args.bintype))
         files.sort()
+        if args.test:
+            files = files[:2]
         files = ' '.join(files)
 
-        infiles_list.append(files)
-        outfile_list.append(outfile)
-        jobID_list.append('ShowerLLH_datamerge_{}_{}_{}'.format(args.config, args.bintype, date))
+        ex = '{} -o {} {}'.format(cmd, outfile, files)
+        os.system(ex)
 
-    if args.test:
-        infiles_list = infiles_list[:1]
-        outfile_list = outfile_list[:1]
-        jobID_list = jobID_list[:1]
-
-    # Submit jobs
-    sublines = None
-    DAG_submit(globaljobID, cmd, jobID_list, outfile_list, infiles_list, mypaths.llh_dir + '/condor',
-            test=args.test, sublines=sublines)
