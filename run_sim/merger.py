@@ -3,6 +3,8 @@
 import argparse
 import glob
 import os
+import numpy as np
+
 import support_functions.simFunctions as simFunctions
 import support_functions.myGlobals as my
 
@@ -10,12 +12,14 @@ if __name__ == "__main__":
 
     # Import global path names
     my.setupGlobals(verbose=False)
-    my.setupShowerLLH(verbose=False)
 
     p = argparse.ArgumentParser(description='Merges simulation hdf5 files')
     p.add_argument('--overwrite', dest='overwrite',
                    default=False, action='store_true',
                    help='Overwrite existing merged files')
+    p.add_argument('--remove', dest='remove',
+                   default=False, action='store_true',
+                   help='Remove unmerged hdf5 files')
     p.add_argument('--prefix', dest='prefix',
                    help='Path to sim file to be merged')
     args = p.parse_args()
@@ -30,7 +34,7 @@ if __name__ == "__main__":
 
     # Reduce list to set of all leading filenames (exclude parts)
     params = ['_'.join(f.split('_')[:-1]) for f in masterList]
-    params = sorted(list(set(params)))
+    params = np.unique(params)
 
     for fileStart in params:
 
@@ -49,3 +53,8 @@ if __name__ == "__main__":
         hdf = '%s/build/hdfwriter/resources' % my.offline
         ex = 'python %s/scripts/merge.py -o %s %s' % (hdf, outFile, fileList)
         os.system(ex)
+
+        # Remove un-merged ShowerLLh files
+        if args.remove:
+            for f in fileList:
+                os.remove(f)

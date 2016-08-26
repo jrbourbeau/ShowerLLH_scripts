@@ -5,7 +5,7 @@ from matplotlib.path import Path
 import glob
 
 import myGlobals as my
-my.setupShowerLLH(verbose=False)
+my.setupGlobals(verbose=False)
 
 ##=========================================================================##
 # Energy binning

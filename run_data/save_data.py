@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v1/icetray-start
+#METAPROJECT /data/user/jbourbeau/metaprojects/icerec/V05-00-00/build
 
 ###########################################################################
 # Takes a list of processed hdf5 files and returns desired information    #
@@ -7,14 +8,19 @@
 ###########################################################################
 
 import numpy as np
-import argparse, os, time, tables, glob
+import argparse
+import os
+import time
+import tables
+import glob
 from copy import deepcopy
 from collections import defaultdict
 
 from icecube import astro
 
 import myGlobals as my
-import dataFunctions as df
+import support_functions.paths as paths
+import support_functions.dataFunctions as df
 
 def saver(config, outFile, fileList):
 
