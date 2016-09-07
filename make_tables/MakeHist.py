@@ -38,6 +38,7 @@ if __name__ == "__main__":
     for test_file in args.files:
         try:
             test_tray = I3Tray()
+            test_tray.context['I3FileStager'] = dataio.get_stagers(staging_directory=os.environ['_CONDOR_SCRATCH_DIR'])
             test_tray.Add('I3Reader', FileName=test_file)
             test_tray.Execute()
             test_tray.Finish()
@@ -50,6 +51,7 @@ if __name__ == "__main__":
     # Execute FillHist on good files
     t0 = time.time()
     tray = I3Tray()
+    tray.context['I3FileStager'] = dataio.get_stagers(staging_directory=os.environ['_CONDOR_SCRATCH_DIR'])
     tray.Add('I3Reader', FileNameList=good_file_list)
     tray.Add(ShowerLLH.FillHist,
              binDict=LLH_bins.bins,

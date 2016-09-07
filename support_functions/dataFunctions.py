@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import glob, os
+import numpy as np
 from anisotropy.simpleDST.goodrunlist.goodrunfunctions import fileCleaner
 
 
@@ -106,6 +107,7 @@ def get_IT_data_files(grl, config, yyyymmdd, gcd=True):
     for run in date_2_goodrun[yyyymmdd]:
         path = run.path
         files += glob.glob(path + '/' + DSTfiles)
+    files = np.unique(files)
     files = sorted(files)
 
     if not gcd:

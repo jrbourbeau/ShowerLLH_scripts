@@ -4,8 +4,9 @@ import numpy as np
 from matplotlib.path import Path
 import glob
 
-import myGlobals as my
-my.setupShowerLLH(verbose=False)
+import support_functions.paths as paths
+# import myGlobals as my
+mypaths = paths.Paths()
 
 ##=========================================================================##
 ## Energy binning
@@ -97,11 +98,14 @@ def getVertex(d, config='IT73', tank_xy=None):
         side[7] = np.array([0,1,12,13,26,27,42,43,60,61])
 
     if tank_xy==None:
-        import myGlobals as my
-        my.setupShowerLLH(verbose=False)
-        tank_xy = np.load('%s/tankpos.npy' % my.llh_resource)
-        tank_xy = tank_xy.item()
-        tank_xy = tank_xy[config]
+        # import myGlobals as my
+        # my.setupShowerLLH(verbose=False)
+        # tank_xy = np.load('%s/tankpos.npy' % my.llh_resource)
+        # tank_xy = tank_xy.item()
+        # tank_xy = tank_xy[config]
+        from icecube import ShowerLLH
+        LLH_grid = ShowerLLH.LLHGrid(config)
+        tank_xy = LLH_grid.get_tank_coords()
 
     # Find slopes and y-intercepts
     nside = len(side)

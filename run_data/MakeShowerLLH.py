@@ -70,7 +70,7 @@ if __name__ == "__main__":
     t0 = time.time()
 
     tray = I3Tray()
-    tray.context['I3FileStager'] = dataio.get_stagers(staging_directory=os.environ["_CONDOR_SCRATCH_DIR"])
+    tray.context['I3FileStager'] = dataio.get_stagers(staging_directory=os.environ['_CONDOR_SCRATCH_DIR'])
     tray.AddModule('I3Reader', FileNameList=args.files)
     hdf = I3HDFTableService(args.outFile)
 

@@ -18,7 +18,6 @@ from collections import defaultdict
 
 from icecube import astro
 
-import myGlobals as my
 import support_functions.paths as paths
 import support_functions.dataFunctions as df
 
@@ -146,7 +145,7 @@ if __name__ == "__main__":
 
     p = argparse.ArgumentParser(description='Converts hdf5 files to npy dict')
     p.add_argument('-c', '--config', dest='config',
-            default='IT81',
+            default='IT73',
             help='Detector configuration')
     p.add_argument('-d', '--date', dest='date',
             help='Month to work on [yyyymm] (optional)')
@@ -158,10 +157,9 @@ if __name__ == "__main__":
             help='Option to overwrite existing merged files')
     args = p.parse_args()
 
-    my.setupShowerLLH(verbose=False)
-    prefix = '%s/%s_data' % (my.llh_data, args.config)
-    masterList = glob.glob('%s/files/DataLLH_????????_%s.hdf5' % 
-            (prefix, args.bintype))
+    mypaths = paths.Paths()
+    prefix = '{}/{}_data'.format(mypaths.llh_dir, args.config)
+    masterList = glob.glob('{}/files/DataLLH_????????_{}.hdf5'.format(prefix, args.bintype))
     masterList.sort()
     print len(masterList)
 
@@ -171,11 +169,11 @@ if __name__ == "__main__":
         months = [m for m in months if args.date in m]
 
     for month in months:
-        fileList = glob.glob('%s/files/DataLLH_%s*_%s.hdf5' %
-                (prefix, month, args.bintype))
+        fileList = glob.glob('{}/files/DataLLH_{}??_{}.hdf5'.format(prefix, month, args.bintype))
+        # fileList = glob.glob('{}/files/DataLLH_{}*_{}.hdf5'.format(prefix, month, args.bintype))
         fileList.sort()
         print len(fileList)
-        outFile = '%s/DataPlot_%s_%s.npy' % (prefix, month, args.bintype)
+        outFile = '{}/DataPlot_{}_{}.npy'.format(prefix, month, args.bintype)
         if os.path.isfile(outFile) and not args.overwrite:
             print 'Outfile %s already exists. Skipping...' % outFile
             continue

@@ -33,7 +33,7 @@ if __name__ == "__main__":
     cmd = 'python {}/build/hdfwriter/resources/scripts/merge.py'.format(
         mypaths.metaproject)
     masterlist = glob.glob(
-        '{}/DataLLH_????????_{}_part*.hdf5'.format(prefix, args.bintype))
+        '{}/DataLLH_????????_{}_??????_part*.hdf5'.format(prefix, args.bintype))
     masterlist.sort()
 
     dates = [os.path.basename(f).split('_')[1] for f in masterlist]
@@ -54,7 +54,7 @@ if __name__ == "__main__":
             os.remove(outfile)
 
         # Build list of files and destination
-        files = glob.glob('{}/DataLLH_{}_{}_part*.hdf5'.format(prefix, date, args.bintype))
+        files = glob.glob('{}/DataLLH_{}_{}_??????_part*.hdf5'.format(prefix, date, args.bintype))
         files.sort()
         if args.test:
             files = files[:2]

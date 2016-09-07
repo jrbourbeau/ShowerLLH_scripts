@@ -9,8 +9,8 @@ import re
 import numpy as np
 from collections import defaultdict
 
-import support_functions.myGlobals as my
-import support_functions.simFunctions as simFunctions
+import support_functions.paths as paths
+import support_functions.simfunctions as simfunctions
 
 
 def eventID(branch):
@@ -149,7 +149,7 @@ def saveExtras(fileList, outFile, bintype):
 if __name__ == "__main__":
 
     # Import global path names
-    my.setupGlobals(verbose=False)
+    mypaths = paths.Paths()
 
     p = argparse.ArgumentParser(
         description='Pulls desired info from hdf5 to npy for rapid reading')
@@ -168,7 +168,7 @@ if __name__ == "__main__":
     if args.prefix:
         prefix = '{}/{}_sim'.format(args.prefix, args.config)
     else:
-        prefix = '{}/{}_sim'.format(my.llh_data, args.config)
+        prefix = '{}/{}_sim'.format(mypaths.llh_dir, args.config)
     if args.sim:
         allfiles = glob.glob(
             '{}/files/SimLLH_{}*.hdf5'.format(prefix, args.sim))

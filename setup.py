@@ -30,7 +30,9 @@ if __name__ == "__main__":
                 'run_sim/MakeShowerLLH.py',
                 'run_sim/MakeExtras.py',
                 'run_sim/MakeMC.py',
+                'run_sim/merge.py',
                 'run_data/merge.py',
+                'run_data/save_hist.py',
                 'run_data/MakeShowerLLH.py']
 
     # Set up 'shebang' line in appropreiate python scripts

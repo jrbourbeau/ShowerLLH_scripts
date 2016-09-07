@@ -26,7 +26,7 @@ def py_submit(executable, arglist, npx4dir, jobID=None,
         if yn != 'y':
             raise SystemExit('Aborting...')
 
-    print('Submitting {} batches...'.format(len(arglist)))
+    print('Submitting {} jobs...'.format(len(arglist)))
     # Add date information
     if jobID is not None:
         jobID += time.strftime('_%Y%m%d')
@@ -40,8 +40,7 @@ def py_submit(executable, arglist, npx4dir, jobID=None,
         "getenv = true\n",
         "executable = {}\n".format(executable),
         "arguments = $(ARGS)\n",
-        "log = {}/logs/{}.log\n".format(npx4dir, jobID),
-        # "log = /scratch/{}/logs/{}.log\n".format(getpass.getuser(), jobID),
+        "log = /scratch/{}/logs/{}.log\n".format(getpass.getuser(), jobID),
         "output = {}/outs/{}.out\n".format(npx4dir, jobID),
         "error = {}/errors/{}.error\n".format(npx4dir, jobID),
         "notification = Never\n",

@@ -71,8 +71,10 @@ def get_ShowerLLH_data_argdict(llh_dir, *good_date_list, **args):
                 batch.insert(0, run_gcd_files[0])
 
                 # Name outfile
-                out = '{}/DataLLH_{}_{}'.format(outdir,
-                                                yyyymmdd, args['bintype'])
+                out = '{}/DataLLH_{}_{}_{}'.format(outdir,
+                                                   yyyymmdd,
+                                                   args['bintype'],
+                                                   run)
                 start = batch[1].split('_')[-2].replace('Part', '')
                 end = batch[-1].split('_')[-2].replace('Part', '')
                 out += '_part{}-{}.hdf5'.format(start, end)
@@ -114,8 +116,8 @@ def make_submit_script(executable, jobID, script_path, condordir):
              "getenv = true\n",
              "executable = {}\n".format(executable),
              "arguments = $(ARGS)\n",
-             "log = {}/logs/{}.log\n".format(condordir, jobID),
-             # "log = /scratch/{}/logs/{}.log\n".format(getpass.getuser(), jobID),
+             # "log = {}/logs/{}.log\n".format(condordir, jobID),
+             "log = /scratch/{}/logs/{}.log\n".format(getpass.getuser(), jobID),
              "output = {}/outs/{}.out\n".format(condordir, jobID),
              "error = {}/errors/{}.error\n".format(condordir, jobID),
              "notification = Never\n",
@@ -153,8 +155,8 @@ if __name__ == '__main__':
                    choices=['standard', 'nozenith', 'logdist', 'nosnow'],
                    help='Option for a variety of preset bin values')
     p.add_argument('-d', '--date', dest='date',
-                   help='Date to run over (yyyy[mmdd])')
-    p.add_argument('-n', dest='n',
+                   help='Date to run over (yyyymmdd)')
+    p.add_argument('-n', dest='n', type=int,
                    help='Number for files to run per submission batch')
     p.add_argument('--nomerge', dest='nomerge', action='store_true',
                    default=False,
@@ -185,13 +187,13 @@ if __name__ == '__main__':
     ShowerLLH_data_jobID = 'MakeShowerLLH_data_{}_{}'.format(
         args.config, args.bintype)
     if args.date:
-        ShowerLLH_data_jobID += '_{}'.format(date)
+        ShowerLLH_data_jobID += '_{}'.format(args.date)
     ShowerLLH_data_jobID = getjobID(ShowerLLH_data_jobID, mypaths.llh_dir)
     ShowerLLH_data_cmd = '{}/run_data/MakeShowerLLH.py'.format(cwd)
     ShowerLLH_data_argdict = get_ShowerLLH_data_argdict(
         mypaths.llh_dir, *good_date_list, **opts)
-    ShowerLLH_data_condor_script = '{}/condor/submit_scripts/MakeShowerLLH_data_condor_script.submit'.format(
-        mypaths.llh_dir)
+    ShowerLLH_data_condor_script = '{}/condor/submit_scripts/{}.submit'.format(
+        mypaths.llh_dir, ShowerLLH_data_jobID)
     make_submit_script(ShowerLLH_data_cmd, ShowerLLH_data_jobID,
                        ShowerLLH_data_condor_script, mypaths.llh_dir + '/condor')
 
@@ -204,15 +206,15 @@ if __name__ == '__main__':
         merge_jobID = getjobID(merge_jobID, mypaths.llh_dir)
         merge_cmd = '{}/run_data/merge.py'.format(cwd)
         merge_argdict = get_merge_argdict(*good_date_list, **opts)
-        merge_condor_script = '{}/condor/submit_scripts/ShowerLLH_datamerge_condor_script.submit'.format(
-            mypaths.llh_dir)
+        merge_condor_script = '{}/condor/submit_scripts/{}.submit'.format(
+            mypaths.llh_dir, merge_jobID)
         make_submit_script(merge_cmd, merge_jobID, merge_condor_script,
                                  mypaths.llh_dir + '/condor')
 
     # Set up dag file
     jobID = 'ShowerLLH_data_{}_{}'.format(args.config, args.bintype)
     if args.date:
-        jobID += '_{}'.format(date)
+        jobID += '_{}'.format(args.date)
     jobID = getjobID(jobID, mypaths.llh_dir)
     dag_file = '{}/condor/submit_scripts/{}.submit'.format(
         mypaths.llh_dir, jobID)

@@ -70,7 +70,7 @@ def getStreamErrors():
 
     import paths
     mypaths = paths.Paths()
-    errFile = '{}/streamErrors.txt'.format(mypaths.npx4)
+    errFile = '{}/streamErrors.txt'.format(mypaths.llh_dir)
     if not os.path.isfile(errFile):
         return []
     with open(errFile, 'r') as f:

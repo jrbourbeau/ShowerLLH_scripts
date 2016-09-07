@@ -13,7 +13,7 @@ from I3Tray import I3Tray
 from icecube.tableio import I3TableWriter
 from icecube.hdfwriter import I3HDFTableService
 
-import support_functions.simFunctions as simFunctions
+import support_functions.simfunctions as simfunctions
 
 
 if __name__ == "__main__":
@@ -30,16 +30,32 @@ if __name__ == "__main__":
 
     # Keys to write to frame
     keys = ['MCPrimary']
-    subeventstream = simFunctions.null_stream(args.config)
+    subeventstream = simfunctions.null_stream(args.config)
 
     t0 = time.time()
 
+    # Construct list of non-truncated files to process
+    good_file_list = []
+    for test_file in args.files:
+        try:
+            test_tray = I3Tray()
+            test_tray.context['I3FileStager'] = dataio.get_stagers(staging_directory=os.environ['_CONDOR_SCRATCH_DIR'])
+            test_tray.Add('I3Reader', FileName=test_file)
+            test_tray.Execute()
+            test_tray.Finish()
+            good_file_list.append(test_file)
+        except:
+            print('file {} is truncated'.format(test_file))
+            pass
+    del test_tray
+
     tray = I3Tray()
-    tray.AddModule('I3Reader', 'reader', FileNameList=args.files)
+    tray.context['I3FileStager'] = dataio.get_stagers(staging_directory=os.environ['_CONDOR_SCRATCH_DIR'])
+    tray.AddModule('I3Reader', 'reader', FileNameList=good_file_list)
     hdf = I3HDFTableService(args.outFile)
     tray.AddModule(I3TableWriter, 'writer', tableservice=hdf, keys=keys,
                    SubEventStreams=[subeventstream])
     tray.Execute()
     tray.Finish()
 
-    print "Time taken: ", time.time() - t0
+    print('Time taken: {}'.format(time.time() - t0))
